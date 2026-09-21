@@ -6,6 +6,12 @@
 
 The cases are designed to make the learner use the history, clinical context, neurologic examination, time course, localization, syndrome, and evolving differential together. Some cases are straightforward. Others remain uncertain or contain competing localizations. The emphasis is on building and updating a coherent neurologic model rather than searching for a hidden diagnosis.
 
+## Learning design
+
+Each case follows the same guided sequence: **Understand → Frame → Gather → Update → Finalize**. The interface is intentionally structured so that the learner first reads the reason for consultation, context, and presentation; then creates an initial neurologic frame before requesting additional information. Subsequent history, examination findings, and tests are selected because they might change that working model. Updating is encouraged when new information matters, but diagnostic uncertainty is allowed.
+
+Case titles describe the presenting problem rather than the diagnosis or localization. The goal is for the learner to construct the neurologic syndrome rather than have it named in advance. The interface avoids required free-text documentation, scoring, and unnecessary confidence ratings so that the learning task remains the clinical reasoning itself.
+
 ## Inspiration and acknowledgment
 
 The reasoning structure of this project is inspired by Ethan Meltzer's *How to Think Like a Neurologist: A Case-Based Guide to Clinical Reasoning in Neurology* (Oxford University Press, 2022). In particular, the book's emphasis on pace, localization, syndrome construction, clinical context, and differential diagnosis strongly influenced how these cases are organized.

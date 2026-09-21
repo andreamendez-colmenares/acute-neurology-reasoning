@@ -1,31 +1,30 @@
 "use strict";
 
-const KEY = "stroke_code_v15";
+const KEY = "acute_neurology_reasoning_v17";
+const ONBOARD_KEY = "acute_neurology_reasoning_onboarded";
 const THEMES = {
-  all:"All cases",
-  focal:"Acute focal deficit",
+  all:"All presentations",
+  focal:"Focal weakness / language change",
   found:"Found down / unclear onset",
-  posterior:"Posterior circulation",
-  lownih:"Low NIHSS / disability",
-  seizure:"Seizure vs stroke",
+  dizzy:"Dizziness / imbalance",
+  hand:"Isolated limb dysfunction",
+  seizure:"Seizure-like activity",
   ams:"Altered mental status",
-  htn:"Hypertension + neurologic symptoms",
-  hemorrhage:"Hemorrhage",
-  spine:"Bilateral leg weakness / myelopathy",
-  delirium:"Delirium / diffuse dysfunction"
+  headache:"Headache / vomiting",
+  legs:"Bilateral leg weakness"
 };
 const CASE_THEMES = {
-  c1:["focal"], c2:["focal","found"], c3:["focal","found"], c4:["focal"],
-  c5:["posterior"], c6:["posterior"], c7:["focal","lownih"], c8:["focal","htn"],
-  c9:["hemorrhage","htn"], c10:["seizure","ams","focal"],
-  c11:["spine","ams"], c12:["delirium","ams"]
+  c1:["focal"], c2:["focal","found"], c3:["focal","found"], c4:["focal","found"],
+  c5:["focal"], c6:["dizzy"], c7:["hand","focal"], c8:["focal"],
+  c9:["headache","focal"], c10:["seizure","ams","focal"],
+  c11:["legs"], c12:["ams"]
 };
 
 function freshState(){
   return {
     view:"home", caseId:null, startedAt:0, elapsed:0, timerRunning:false,
-    tempo:null, localization:null, syndrome:null, hypothesisLevels:{}, reasoningUpdates:[],
-    reexamCount:0, actionsTaken:[], revealed:{}, pathwayChoice:null, finalDiagnosis:"", timeline:[], history:[], theme:"all"
+    tempo:null, localization:null, syndrome:null, hypothesisLevels:{}, reasoningUpdates:[], modelFramed:false,
+    lastModelUpdateDataCount:0, reexamCount:0, actionsTaken:[], revealed:{}, pathwayChoice:null, finalDiagnosis:"", timeline:[], history:[], theme:"all"
   };
 }
 let S = freshState();
@@ -55,7 +54,7 @@ function probLabel(id){ return (PROB_LEVELS.find(x=>x.id===id)||{}).label || "No
 function setView(view){ S.view=view; save(); render(); }
 function render(){
   const app=$("#app"), mobile=$("#mobileActions"), label=$("#caseLabel");
-  mobile.hidden = S.view !== "case";
+  if(mobile) mobile.hidden = true;
   if(S.view==="home"){
     label.textContent="Home"; resetCaseTimer(); renderHome(app);
   }else if(S.view==="case"){
@@ -71,57 +70,119 @@ function renderHome(app){
   app.innerHTML=`
     <section class="hero minimal-home">
       <h1>ACUTE NEUROLOGY REASONING</h1>
-      <p>Interactive cases in acute neurologic reasoning.</p>
-      <div class="home-cta"><button class="primary" id="randomCase">Start a case</button><button class="secondary" id="resumeCase" ${S.caseId&&S.timeline.length?'':'hidden'}>Resume case</button></div>
+      <p>Interactive cases for practicing neurologic reasoning in acute consultation.</p>
+      <div class="home-sequence" aria-label="Case workflow"><span>Understand</span><i>→</i><span>Frame</span><i>→</i><span>Gather</span><i>→</i><span>Update</span><i>→</i><span>Finalize</span></div>
+      <div class="home-cta"><button class="primary" id="randomCase">Start a case</button><button class="secondary" id="resumeCase" ${S.caseId?'':'hidden'}>Resume case</button><button class="ghost" id="howItWorks">How it works</button></div>
     </section>
+    <div class="home-toolbar">
+      <label class="filter-control"><span>Filter by presentation</span><select id="themeSelect">${Object.entries(THEMES).map(([id,label])=>`<option value="${id}" ${S.theme===id?'selected':''}>${label}</option>`).join('')}</select></label>
+    </div>
     <div class="section-title">Cases</div>
-    <div class="theme-row">${Object.entries(THEMES).map(([id,label])=>`<button class="theme-chip ${S.theme===id?'active':''}" data-theme="${id}">${label}</button>`).join('')}</div>
     <div class="case-grid">${filtered.map(c=>`<button class="case-card" data-case="${c.id}"><span class="case-kicker">Case ${c.n}</span><h3>${caseName(c)}</h3></button>`).join('')}</div>`;
   $("#randomCase").onclick=()=>startCase(filtered[Math.floor(Math.random()*filtered.length)].id);
   const resume=$("#resumeCase"); if(resume) resume.onclick=()=>{S.view="case"; if(!S.timerRunning){S.startedAt=Date.now();S.timerRunning=true;} save();render();};
-  app.querySelectorAll("[data-theme]").forEach(b=>b.onclick=()=>{S.theme=b.dataset.theme;save();render();});
+  $("#themeSelect").onchange=e=>{S.theme=e.target.value;save();render();};
+  $("#howItWorks").onclick=()=>openOnboardingSheet(false);
   app.querySelectorAll("[data-case]").forEach(b=>b.onclick=()=>startCase(b.dataset.case));
 }
 function caseName(c){
-  const names={c1:"Hyperacute dominant-hemisphere syndrome",c2:"Wake-up cortical syndrome",c3:"Unknown onset, no collateral",c4:"Large-core anterior circulation stroke",c5:"Crossed brainstem findings",c6:"Acute vestibular syndrome",c7:"Isolated dominant-hand weakness",c8:"Severe hypertension with focal deficit",c9:"Headache, vomiting, and weakness",c10:"Seizure, weakness, and altered mental status",c11:"Acute bilateral leg weakness",c12:"Fluctuating confusion in the hospital"};
+  const names={
+    c1:"Sudden loss of speech and right-sided weakness",
+    c2:"Found unable to speak with right-sided weakness",
+    c3:"Unable to speak with right-sided weakness, onset unclear",
+    c4:"Found with left-sided weakness and poor attention to the left",
+    c5:"Sudden somnolence, abnormal eye position, and weakness",
+    c6:"Sudden severe vertigo and inability to sit",
+    c7:"Sudden loss of right-hand function",
+    c8:"Sudden loss of speech and right-sided weakness with severe hypertension",
+    c9:"Sudden severe headache, vomiting, and weakness",
+    c10:"Weakness after a witnessed convulsion",
+    c11:"New bilateral leg weakness after critical illness",
+    c12:"Fluctuating confusion in the hospital"
+  };
   return names[c.id]||`Case ${c.n}`;
+}
+function openOnboardingSheet(markSeen=true){
+  showSheet("","How each case works",`<div class="onboard-steps">
+    <div><b>1</b><span><strong>Understand</strong><small>Read the reason for consultation, context, and presentation.</small></span></div>
+    <div><b>2</b><span><strong>Frame</strong><small>Define pace, localization, syndrome, and an initial differential.</small></span></div>
+    <div><b>3</b><span><strong>Gather</strong><small>Choose targeted history, examination, or tests that could change your model.</small></span></div>
+    <div><b>4</b><span><strong>Update</strong><small>Revise the model when new information meaningfully changes it.</small></span></div>
+    <div><b>5</b><span><strong>Finalize</strong><small>State your working interpretation and management. Uncertainty is allowed.</small></span></div>
+  </div><div class="sheet-actions"><button class="primary" id="beginCase">${S.view==="case"?'Begin case':'Close'}</button></div>`);
+  $("#beginCase").onclick=()=>{if(markSeen){try{localStorage.setItem(ONBOARD_KEY,"1");}catch(_e){}}closeSheet();};
 }
 
 function startCase(id){
   const history=S.history||[]; const theme=S.theme||"all";
-  S=freshState(); S.history=history; S.theme=theme; S.caseId=id; S.view="case"; S.timeline=[{time:"00:00",type:"Arrival",title:"Initial presentation",text:getCase().presentation||getCase().arrival}];
+  S=freshState(); S.history=history; S.theme=theme; S.caseId=id; S.view="case"; S.timeline=[];
   save(); startTimer(); render();
+  try{ if(!localStorage.getItem(ONBOARD_KEY)) openOnboardingSheet(true); }catch(_e){}
+}
+
+function dataCount(){ return S.actionsTaken.length + S.reexamCount; }
+function hasNewData(){ return S.modelFramed && dataCount()>S.lastModelUpdateDataCount; }
+function canFinalize(){ return S.modelFramed && dataCount()>0; }
+function workflowHTML(){
+  const gathered=dataCount()>0, updated=S.reasoningUpdates.length>0;
+  let active=0;
+  if(!S.modelFramed) active=0;
+  else if(!gathered) active=2;
+  else if(hasNewData()) active=3;
+  else active=2;
+  const steps=[
+    {label:"Understand",done:S.modelFramed},
+    {label:"Frame",done:S.modelFramed},
+    {label:"Gather",done:gathered},
+    {label:"Update",done:updated&&!hasNewData()},
+    {label:"Finalize",done:false}
+  ];
+  return `<div class="workflow-strip">${steps.map((x,i)=>`<div class="workflow-step ${x.done?'done':''} ${i===active?'active':''}"><span>${x.done?'✓':i+1}</span><b>${x.label}</b></div>`).join('')}</div>`;
+}
+function nextStepHTML(){
+  if(!S.modelFramed) return `<section class="next-step-card"><div><div class="eyebrow">Start here</div><h2>Frame the neurologic problem</h2><p>Use only what is available now. Define the pace, localization, syndrome, and initial differential before gathering more data.</p></div><button class="primary" id="nextFrame">Frame the syndrome</button></section>`;
+  if(dataCount()===0) return `<section class="next-step-card"><div><div class="eyebrow">Next step</div><h2>Test your working model</h2><p>Choose targeted history, examination, or testing that could meaningfully change the localization or differential.</p></div><button class="primary" id="nextGather">Gather data</button></section>`;
+  if(hasNewData()) return `<section class="next-step-card"><div><div class="eyebrow">New information</div><h2>Does this change your model?</h2><p>Update the differential if the new finding changes its relative likelihood. Revise the full frame if localization or syndrome has changed.</p></div><div class="next-step-actions"><button class="primary" id="nextUpdate">Update model</button><button class="secondary" id="nextGather">Gather more data</button>${canFinalize()?'<button class="ghost" id="nextFinalize">Finalize instead</button>':''}</div></section>`;
+  return `<section class="next-step-card"><div><div class="eyebrow">Working model updated</div><h2>Continue or finalize</h2><p>Gather more information if it could change your model. If the assessment is sufficiently developed, finalize it.</p></div><div class="next-step-actions"><button class="secondary" id="nextGather">Gather more data</button>${canFinalize()?'<button class="primary" id="nextFinalize">Finalize assessment</button>':''}</div></section>`;
+}
+function wireNextStep(){
+  const f=$("#nextFrame"); if(f)f.onclick=()=>openModelSheet(true);
+  const g=$("#nextGather"); if(g)g.onclick=()=>openSheet("gather");
+  const u=$("#nextUpdate"); if(u)u.onclick=openUpdateSheet;
+  const z=$("#nextFinalize"); if(z)z.onclick=openFinalizeSheet;
 }
 
 function renderCase(app,c){
   const r=reasoningFor(c);
-  app.innerHTML=`<section class="workspace">
+  app.innerHTML=`<section class="case-flow">
+    ${workflowHTML()}
     <div class="patient-banner">
       <div class="case-kicker">Case ${c.n}</div>
       <div class="activation-line"><span>Reason for consultation</span><strong>${htmlSafe(c.activation||caseName(c))}</strong></div>
       <div class="context-line"><span>Context</span><p>${htmlSafe(c.context||"")}</p></div>
       <div class="presentation-line"><span>Presentation</span><p>${htmlSafe(c.presentation||c.arrival)}</p></div>
     </div>
-    <section class="timeline-panel">
-      <div class="timeline-head"><h2>Clinical timeline</h2></div>
-      <div class="timeline">${S.timeline.map(renderEvent).join('')}</div>
-      <button class="reexam-button" id="reexamBtn">↻ Re-examine patient</button>
-    </section>
-    <aside class="workspace-side">
-      <div class="panel model-panel">
-        <div class="panel-head"><div><div class="eyebrow">Working model</div></div><button class="ghost" id="editModel">Edit</button></div>
-        ${workingModelHTML(r)}
+    ${nextStepHTML()}
+    ${S.modelFramed?`<section class="case-body">
+      <div class="timeline-panel">
+        <div class="timeline-head"><h2>Clinical timeline</h2></div>
+        <div class="timeline">${S.timeline.map(renderEvent).join('')}</div>
       </div>
-      <div class="panel desktop-actions"><button class="secondary" data-sheet="ask">Ask</button><button class="secondary" data-sheet="examine">Examine</button><button class="secondary" data-sheet="test">Tests</button><button class="secondary" data-sheet="update">Update</button></div>
-      <button class="primary finalize-button" id="finalizeBtn">Finalize assessment</button>
-    </aside>
+      <aside class="workspace-side">
+        <div class="panel model-panel">
+          <div class="panel-head"><div><div class="eyebrow">Working model</div></div><button class="ghost" id="editModel">Revise</button></div>
+          ${workingModelHTML(r)}
+        </div>
+      </aside>
+    </section>`:''}
   </section>`;
-  $("#reexamBtn").onclick=doReexam; $("#editModel").onclick=()=>openModelSheet(false); $("#finalizeBtn").onclick=openFinalizeSheet;
-  app.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>openSheet(b.dataset.sheet));
+  const edit=$("#editModel"); if(edit)edit.onclick=()=>openModelSheet(false);
+  wireNextStep();
 }
+
 function renderEvent(e){ return `<article class="event ${e.kind||''}"><div class="event-meta"><span class="event-time">${htmlSafe(e.time)}</span><span class="event-type">${htmlSafe(e.type)}</span></div><h3>${htmlSafe(e.title)}</h3><p>${e.text||''}</p></article>`; }
 function workingModelHTML(r){
-  if(!S.tempo&&!S.localization&&!S.syndrome&&!Object.keys(S.hypothesisLevels).length) return `<button class="secondary" onclick="openModelSheet(true)">Frame the syndrome</button>`;
+  if(!S.modelFramed) return `<p class="empty-model">Not yet framed.</p>`;
   const rows=[
     S.tempo?`<div class="model-row"><span>Pace</span><b>${htmlSafe(titleFor(TEMPOS,S.tempo))}</b></div>`:'',
     S.localization?`<div class="model-row"><span>Localization</span><b>${htmlSafe(titleFor(LOCALIZATIONS,S.localization))}</b></div>`:'',
@@ -132,12 +193,10 @@ function workingModelHTML(r){
 }
 
 function openSheet(kind){
-  if(kind==="ask") return openActionSheet("Ask",[
-    ["history","History and collateral"]
-  ]);
+  if(kind==="gather") return openActionSheet("Gather data",[["history","Ask"],["bedside","Examine"],["imaging","Imaging"],["other","Other tests / resources"]]);
+  if(kind==="ask") return openActionSheet("Ask",[["history","History and collateral"]]);
   if(kind==="examine") return openActionSheet("Examine",[["bedside","Bedside examination"]]);
-  if(kind==="test") return openActionSheet("Test",[["imaging","Imaging"],["other","Other tests / resources"]]);
-  if(kind==="update") return openUpdateSheet();
+  if(kind==="test") return openActionSheet("Tests",[["imaging","Imaging"],["other","Other tests / resources"]]);
 }
 function showSheet(eyebrow,title,html){
   $("#sheetEyebrow").textContent=eyebrow||""; $("#sheetTitle").textContent=title; $("#sheetBody").innerHTML=html; const d=$("#sheet"); if(!d.open)d.showModal();
@@ -185,8 +244,14 @@ function openModelSheet(first){
   $("#sheetBody").querySelectorAll("[data-prob-group]").forEach(wireProbGroup);
   $("#saveModel").onclick=()=>{
     const tempo=getChecked("tempo"), loc=getChecked("localization"), syn=getChecked("syndrome");
-    if(tempo)S.tempo=tempo;if(loc)S.localization=loc;if(syn)S.syndrome=syn;
-    const levels=readProbGroups("modelprob"); S.hypothesisLevels={...S.hypothesisLevels,...levels};
+    const levels=readProbGroups("modelprob");
+    let warn=$("#modelWarning");
+    if(!warn){ warn=document.createElement("div"); warn.id="modelWarning"; warn.className="note warning"; $("#saveModel").closest(".sheet-actions").before(warn); }
+    if(!tempo||!loc||!syn||!Object.keys(levels).length){ warn.textContent="Complete pace, localization, syndrome, and at least one differential estimate before continuing."; return; }
+    warn.remove();
+    S.tempo=tempo;S.localization=loc;S.syndrome=syn; S.hypothesisLevels={...S.hypothesisLevels,...levels};
+    const wasFramed=S.modelFramed; S.modelFramed=true;
+    if(wasFramed){S.lastModelUpdateDataCount=dataCount();S.reasoningUpdates.push({time:stamp(),levels:{...S.hypothesisLevels}});}
     S.timeline.push({time:stamp(),type:"Reasoning",title:first?"Initial working model":"Working model revised",text:reasoningSummaryText(r),kind:"reasoning"}); save();closeSheet();render();
   };
 }
@@ -208,19 +273,21 @@ function shiftLevel(level,dir){
 }
 function openUpdateSheet(){
   const c=getCase(), r=reasoningFor(c); if(!c)return;
-  const rows=r.hypotheses.map((h,i)=>`<div class="update-row" data-update-hyp="${htmlSafe(h)}"><div><b>${htmlSafe(h)}</b><span>${probLabel(S.hypothesisLevels[h])}</span></div><div class="update-actions"><button type="button" data-dir="down">↓ less likely</button><button type="button" data-dir="same" class="selected">— unchanged</button><button type="button" data-dir="up">↑ more likely</button></div></div>`).join('');
-  showSheet("","Update differential",`${rows}<div class="sheet-actions"><button class="secondary" id="cancelUpdate">Close</button><button class="primary" id="saveUpdate">Save update</button></div>`);
+  const rows=r.hypotheses.filter(h=>S.hypothesisLevels[h]).map((h,i)=>`<div class="update-row" data-update-hyp="${htmlSafe(h)}"><div><b>${htmlSafe(h)}</b><span>${probLabel(S.hypothesisLevels[h])}</span></div><div class="update-actions"><button type="button" data-dir="down">↓ less likely</button><button type="button" data-dir="same" class="selected">— unchanged</button><button type="button" data-dir="up">↑ more likely</button></div></div>`).join('');
+  showSheet("","Update model",`<div class="note">If the new information changes the localization or syndrome, revise the full working model rather than only changing diagnostic likelihoods.</div><div class="update-frame-link"><button class="secondary" id="reviseFrame">Revise pace / localization / syndrome</button></div>${rows}<div class="sheet-actions"><button class="secondary" id="cancelUpdate">Close</button><button class="primary" id="saveUpdate">Save update</button></div>`);
   $("#cancelUpdate").onclick=closeSheet;
+  $("#reviseFrame").onclick=()=>{closeSheet();openModelSheet(false);};
   $("#sheetBody").querySelectorAll(".update-row").forEach(row=>row.querySelectorAll("[data-dir]").forEach(b=>b.onclick=()=>{row.querySelectorAll("[data-dir]").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");}));
   $("#saveUpdate").onclick=()=>{
     const prev={...S.hypothesisLevels}; const next={...S.hypothesisLevels}; const changes=[];
     $("#sheetBody").querySelectorAll(".update-row").forEach(row=>{const h=row.dataset.updateHyp; const dir=row.querySelector("[data-dir].selected")?.dataset.dir||"same"; if(!next[h]) next[h]="low"; const shifted=shiftLevel(next[h],dir); if(shifted!==next[h]) changes.push(`${h}: ${probLabel(next[h])} → ${probLabel(shifted)}`); next[h]=shifted;});
-    S.hypothesisLevels=next; S.reasoningUpdates.push({time:stamp(),levels:{...next}}); S.timeline.push({time:stamp(),type:"Reasoning update",title:"Differential updated",text:changes.length?changes.join("; "):"Differential unchanged.",kind:"reasoning"}); save();closeSheet();render();
+    S.hypothesisLevels=next; S.lastModelUpdateDataCount=dataCount(); S.reasoningUpdates.push({time:stamp(),levels:{...next}}); S.timeline.push({time:stamp(),type:"Reasoning update",title:"Working model updated",text:changes.length?changes.join("; "):"Differential unchanged.",kind:"reasoning"}); save();closeSheet();render();
   };
 }
 
 function openFinalizeSheet(){
   const c=getCase(), r=reasoningFor(c); if(!c)return;
+  if(!canFinalize()){ showSheet("","Before finalizing",`<div class="note">Frame the syndrome and gather at least one targeted piece of additional information before finalizing the case.</div><div class="sheet-actions"><button class="primary" id="backToCase">Return to case</button></div>`); $("#backToCase").onclick=closeSheet; return; }
   const dxOptions=[...r.hypotheses,"Diagnosis remains uncertain / more than one process may contribute"];
   const management=(c.managementOptions||PATHWAYS.map(x=>x.id)).map(id=>PATHWAYS.find(x=>x.id===id)).filter(Boolean);
   showSheet("","Finalize assessment",`
