@@ -15,7 +15,10 @@ const LOCALIZATIONS = [
   {id:'brainstem', title:'Brainstem', desc:'Cranial nerve findings, crossed signs, long-tract pattern.'},
   {id:'cerebellar', title:'Cerebellar / vestibular network', desc:'Gait or truncal ataxia, nystagmus, dysmetria, acute vestibular syndrome.'},
   {id:'diffuse', title:'Diffuse cerebral dysfunction', desc:'Global attention/arousal disturbance without a coherent focal syndrome.'},
-  {id:'nmj_pns', title:'NMJ / peripheral neuromuscular', desc:'Fatigable, bulbar, ocular, proximal, peripheral nerve, or muscle pattern.'},
+  {id:'spinal_cord', title:'Spinal cord', desc:'A myelopathic pattern involving long tracts, a sensory level, or autonomic dysfunction.'},
+  {id:'conus_roots', title:'Conus / cauda equina / lumbosacral roots', desc:'Leg weakness with root, saddle sensory, sphincter, or lower-motor-neuron features.'},
+  {id:'pns', title:'Peripheral nerve / plexus', desc:'Length-dependent, multifocal, or nerve-distribution motor and sensory findings.'},
+  {id:'nmj_pns', title:'NMJ / muscle', desc:'Fatigable, bulbar, ocular, or proximal weakness without a sensory level.'},
   {id:'multifocal_unclear', title:'Multifocal / unclear', desc:'Findings do not yet map cleanly to one neuroanatomic site.'}
 ];
 
@@ -38,6 +41,8 @@ const SYNDROMES = [
   {id:'posterior_brainstem', title:'Brainstem syndrome', desc:'Cranial nerve findings, crossed signs, long-tract findings, dysarthria, or impaired arousal.'},
   {id:'cerebellar_vestibular', title:'Acute vestibular / cerebellar syndrome', desc:'Continuous vertigo or dizziness with nystagmus, gait/truncal instability, ocular motor findings, hearing symptoms, or dysmetria.'},
   {id:'hemorrhage', title:'Acute focal syndrome with headache / vomiting / impaired arousal', desc:'A focal neurologic syndrome accompanied by severe headache, vomiting, or reduced level of consciousness.'},
+  {id:'paraparesis_mixed', title:'Bilateral lower-extremity weakness with mixed localizing features', desc:'A bilateral leg motor syndrome in which brain, cord, roots, or peripheral nervous system remain plausible.'},
+  {id:'acute_confusional', title:'Acute fluctuating cognitive-attentional syndrome', desc:'Acute change in attention, arousal, and cognition with fluctuation and no stable focal syndrome.'},
   {id:'mimic', title:'Diffuse, nonfocal, or uncertain syndrome', desc:'The observations do not yet form a coherent focal syndrome, or the localization remains uncertain.'}
 ];
 
@@ -68,6 +73,8 @@ const ACTIONS = {
     {id:'glucose', label:'Check glucose'},
     {id:'bp', label:'Repeat BP'},
     {id:'nihss', label:'Perform NIHSS'},
+    {id:'focused_exam', label:'Focused neurologic examination'},
+    {id:'attention_exam', label:'Assess attention and arousal'},
     {id:'reexam', label:'Repeat neurologic examination', repeatable:true}
   ],
   history:[
@@ -82,10 +89,15 @@ const ACTIONS = {
     {id:'ncct', label:'Order CT head'},
     {id:'cta', label:'Order CTA'},
     {id:'ctp', label:'Order CTP'},
-    {id:'mri', label:'Order MRI DWI/FLAIR'}
+    {id:'mri', label:'Order MRI DWI/FLAIR'},
+    {id:'mri_tspine', label:'Review / obtain MRI thoracic spine'},
+    {id:'mri_lspine', label:'Obtain MRI lumbar spine / conus'}
   ],
   other:[
+    {id:'labs', label:'Review targeted laboratory data'},
     {id:'eeg', label:'Order rapid EEG'},
+    {id:'emg', label:'Plan EMG / nerve conduction studies'},
+    {id:'lp', label:'Consider CSF studies'},
     {id:'pharmacy', label:'Call pharmacy'}
   ]
 };
@@ -106,7 +118,9 @@ const PATHWAYS = [
   {id:'reperfusion', title:'Reperfusion candidate', desc:'Call attending. Acute ischemic stroke that may benefit from IV tenecteplase, mechanical thrombectomy, or both. Page IR to discuss MT if LVO present. Specifics depend on window, occlusion location, ASPECTS, and contraindications.'},
   {id:'dapt', title:'DAPT (minor nondisabling stroke)', desc:'Call attending. Acute ischemic stroke suspected but the deficit is not disabling and NIHSS is 0 to 5. Start dual antiplatelet therapy (clopidogrel plus aspirin). No reperfusion. Full stroke workup still applies.'},
   {id:'hemorrhage', title:'Hemorrhage pathway', desc:'Call attending. CT head shows hemorrhage. Stop reperfusion thinking. Lower SBP toward 130 to under 140 smoothly, avoid overshoot below 130. Reverse anticoagulation if applicable. Page NSGY. NICU disposition.'},
-  {id:'mimic_unclear', title:'Mimic or unclear', desc:'Call attending. Stroke is not the working diagnosis or it is unclear. Treat the trigger (seizure, hypoglycemia, etc.) when there is one. In some mimics there is no specific stroke intervention, only observation and workup of the underlying cause. Rapid EEG if NCSE concern.'}
+  {id:'mimic_unclear', title:'Mimic or unclear', desc:'Call attending. Stroke is not the working diagnosis or it is unclear. Treat the trigger when there is one and continue targeted evaluation when the syndrome remains unresolved.'},
+  {id:'spinal_eval', title:'Continue spinal / peripheral localization', desc:'Use serial examination and targeted testing to distinguish cord, conus/roots, peripheral nerve, and multifocal processes; escalate urgently if a compressive syndrome remains plausible.'},
+  {id:'delirium_eval', title:'Treat precipitants and delirium care', desc:'Address likely systemic precipitants and supportive delirium measures; add neurologic testing when focal findings, persistent unexplained impairment, or the trajectory make another process plausible.'}
 ];
 
 // ============================================================
@@ -512,6 +526,94 @@ const CASES = [
  citations:['2026 AHA/ASA AIS Guideline'],
  trap:'Letting vascular risk factors erase the seizure clues, or assuming seizure excludes stroke.'
 }
+,
+
+{id:'c11', n:11,
+ arrival:'56-year-old man in the ICU after massive hemoptysis requiring bronchial artery embolization, intubation, shock, and neuromuscular blockade. After paralytics are stopped and he begins to awaken, he follows commands with both arms but does not move either leg.',
+ activation:'New bilateral lower-extremity weakness after critical illness',
+ context:'History of pulmonary sarcoidosis and a presumed right upper-lobe aspergilloma. Recent shock/hypotension and severe respiratory illness. Several weeks before admission he had burning/numb feet, gait difficulty, and a prior evaluation for bilateral leg weakness.',
+ presentation:'Once neuromuscular blockade has cleared, he reliably follows commands with both upper extremities but initially has no voluntary movement of either leg. The team has already identified small acute multifocal cerebral infarcts on MRI brain and an abnormal thoracic cord signal whose age is uncertain.',
+ unknowns:['baseline','collateral','nihss','mri'],
+ syndrome:'paraparesis_mixed',
+ managementOptions:['spinal_eval','mimic_unclear'],
+ r:{
+  collateral:'Family reports progressive burning pain and numbness in both feet with worsening gait for several weeks before this admission. He was still ambulatory before the acute respiratory illness, though less steadily than usual.',
+  meds:'Neuromuscular blockade was discontinued several hours ago. Sedation has been lightened. No ongoing paralytic exposure.',
+  baseline:'Before this hospitalization he walked independently but had recently become slower and less steady because of distal sensory symptoms.',
+  focused_exam:'Awake enough to follow commands. Cranial nerves are grossly symmetric. Upper extremity strength is antigravity and symmetric. Lower extremities show only trace proximal movement and no reliable distal movement. Tone is difficult to interpret because the legs remain markedly tense/guarded. Knee reflexes are reduced; ankle reflexes are absent. Plantar responses are mute. Pinprick is reduced distally in both feet without a clear thoracic sensory level. Saddle sensation is not clearly abnormal. Rectal tone has not yet been assessed.',
+  nihss:'NIHSS is difficult to interpret because bilateral leg weakness accounts for much of the score. There is no aphasia, neglect, gaze deviation, or convincing cortical sensory deficit.',
+  ncct:'Head CT shows no hemorrhage.',
+  cta:'CTA head/neck shows no proximal large-vessel occlusion.',
+  mri:'MRI brain shows several small acute infarcts in more than one vascular territory. None are grossly in a bilateral ACA distribution and the lesion burden does not convincingly explain the profound symmetric leg weakness.',
+  mri_tspine:'MRI thoracic spine shows a focal intramedullary T2 signal abnormality. There is no major compressive lesion. The appearance is not specific enough to establish whether this is acute, chronic, inflammatory, or vascular, and the examination does not cleanly map to that level.',
+  mri_lspine:'MRI lumbar spine/conus shows no large compressive cauda equina lesion. Degenerative changes are present but do not provide a single structural explanation for the severity of weakness.',
+  labs:'CK is not markedly elevated. Electrolyte abnormalities do not explain the degree of weakness. Systemic inflammatory and infectious data remain abnormal in the setting of severe critical illness.',
+  emg:'EMG/NCS would be more informative after sufficient time has elapsed and if the peripheral localization remains clinically important; it is not an immediate bedside answer to the acute weakness.',
+  lp:'CSF studies could become relevant if inflammatory or infectious myelopathy remains plausible after imaging and the clinical trajectory, but this is not the first step while localization is still unsettled.',
+  eeg:'No episodic altered awareness or motor activity suggests an ictal explanation for the isolated leg weakness.'
+ },
+ pathway:'spinal_eval',
+ ideal:['focused_exam','mri','mri_tspine','mri_lspine','collateral','labs'],
+ syndromeStory:'This case does not resolve into one clean lesion. The acute cerebral infarcts are real but do not anatomically account for the profound bilateral leg weakness. The thoracic cord abnormality is also real, but its age and causal relevance are uncertain, and the examination contains lower-motor-neuron/peripheral features without a convincing thoracic sensory level. The useful reasoning move is to keep the localization open across spinal cord, conus/roots, and peripheral nervous system while using the history and serial examination to decide which tests actually discriminate among them.',
+ competing:[
+  {label:'Cerebral ischemia', text:'The multifocal acute infarcts establish a vascular process, but their distribution and lesion burden do not adequately explain the symmetric bilateral leg syndrome.'},
+  {label:'Spinal cord / conus process', text:'Recent hypotension, pulmonary sarcoidosis, and an intramedullary thoracic signal abnormality make vascular or inflammatory myelopathy plausible. The mismatch between the imaging level and bedside pattern prevents premature closure.'},
+  {label:'Peripheral process', text:'Weeks of distal neuropathic symptoms, reduced reflexes, and absent ankle jerks support a peripheral contribution. Critical illness may worsen pre-existing peripheral dysfunction, but that explanation should still fit the trajectory and examination.'},
+  {label:'Infectious / inflammatory process', text:'The pulmonary and systemic context keeps inflammatory or infectious mechanisms in the etiologic differential, but context alone does not establish localization.'}
+ ],
+ whatChanged:'The most important updates are not a single positive test but the mismatches: the brain lesions do not explain the syndrome, the thoracic lesion does not perfectly fit the examination, and the pre-hospital neuropathic history shifts probability toward a pre-existing or concurrent peripheral process.',
+ uncertainty:'A single final diagnosis may not be justified during the initial consultation. The immediate goal is to define the neural level or levels involved, exclude a compressive emergency, and decide whether subsequent testing should pursue vascular, inflammatory/infectious, or peripheral mechanisms.',
+ teach:[
+   'Start with the time course: an acute deterioration can occur on top of a subacute neurologic process, and both time scales may matter.',
+   'Localize before assigning causality to MRI abnormalities. A lesion can be real and still be incompletely explanatory.',
+   'In acute severe myelopathy, reflexes may initially be reduced, so a lower-motor-neuron-appearing examination does not by itself exclude spinal cord disease.',
+   'When the examination and available imaging conflict, targeted imaging of the remaining plausible neural levels and serial examination are more useful than forcing an early label.'
+ ],
+ citations:['WFNS Spine Committee recommendations on cauda equina/conus syndromes (2024)','Tan & Manohararaj, isolated conus medullaris infarction (2021)'],
+ trap:'Prematurely deciding that whichever abnormal MRI was found first must explain the weakness.'
+},
+
+{id:'c12', n:12,
+ arrival:'79-year-old woman develops intermittent confusion on hospital day 4. Nursing reports that she was sleepy and inattentive this morning, more conversant around noon, and confused again later in the afternoon. A stroke code is activated because the change seems abrupt.',
+ activation:'Fluctuating confusion and decreased responsiveness',
+ context:'Older hospitalized adult with substantial cerebrovascular disease and chronic small-vessel ischemic change, prolonged hospitalization for systemic illness, poor sleep, pain, reduced mobility, renal dysfunction, anemia, and several medication changes. Family says she was cognitively independent before admission but becomes confused easily when ill.',
+ presentation:'Her mental status has waxed and waned over hours. At the time of neurology evaluation she is awake and conversational but easily loses the thread of conversation. No persistent unilateral weakness, gaze deviation, aphasia, or visual field deficit has been reported.',
+ unknowns:['baseline','collateral','glucose','bp','nihss','ncct','mri'],
+ syndrome:'acute_confusional',
+ managementOptions:['delirium_eval','mimic_unclear'],
+ r:{
+  glucose:'Glucose is normal.',
+  bp:'Blood pressure is elevated but similar to recent inpatient values; there is no abrupt hypertensive surge associated with the episodes.',
+  collateral:'Family confirms an acute change from her pre-hospital baseline and describes fluctuation throughout the day rather than a fixed deficit. She slept poorly overnight and has had limited oral intake.',
+  meds:'Medication review shows recent exposure to several centrally acting agents used for pain, sleep, and nausea. No single medication clearly explains the entire syndrome, but cumulative medication burden is relevant.',
+  baseline:'Before admission she managed her own basic activities and conversations normally. Family reports no established dementia diagnosis.',
+  attention_exam:'She is awake and oriented to name and hospital. She cannot sustain months of the year backward, becomes distractible during multi-step commands, and gives inconsistent answers when the task is repeated several minutes later. Arousal varies subtly during the encounter.',
+  focused_exam:'Cranial nerves are symmetric. Speech is fluent without aphasia. No gaze preference or visual field deficit is identified. Strength is symmetric within the limits of pain and deconditioning. Sensation is symmetric. There is no new focal neurologic deficit.',
+  nihss:'No reproducible focal NIHSS deficit is identified. Errors are driven by attention and participation rather than a stable focal syndrome.',
+  ncct:'CT head shows no acute hemorrhage or large territorial infarct; chronic atrophy and small-vessel ischemic changes are present.',
+  mri:'MRI is not immediately obtained because the examination remains nonfocal and the mental status improves with treatment of systemic contributors. It would become more useful if a persistent focal syndrome emerged or the course stopped fitting delirium.',
+  labs:'The chart shows several plausible precipitants: renal dysfunction, anemia, poor intake/dehydration, ongoing systemic illness, and sleep disruption. There is no single laboratory abnormality that fully explains the presentation.',
+  eeg:'Rapid EEG is not initially obtained because there are no stereotyped spells, abnormal movements, or persistent unexplained depressed awareness. It would move up the workup if impaired awareness became sustained or episodic in a way not explained by the systemic course.'
+ },
+ pathway:'delirium_eval',
+ ideal:['collateral','attention_exam','focused_exam','meds','labs'],
+ syndromeStory:'The defining pattern is an acute, fluctuating disturbance of attention and cognition in a vulnerable hospitalized patient without a stable focal neurologic syndrome. The systemic context is not background noise; it meaningfully raises the prior probability of delirium. The neurologic task is to verify the phenotype, look for findings that would require a different localization, and avoid ordering increasingly broad neurologic tests simply because the initial consult was labeled as a possible stroke.',
+ competing:[
+  {label:'Multifactorial delirium', text:'Acute fluctuation, inattention, variable arousal, systemic illness, sleep disruption, renal dysfunction, anemia, poor intake, and medication burden all support this syndrome.'},
+  {label:'Acute stroke', text:'Cerebrovascular disease raises baseline risk, but repeated examinations do not identify a stable focal cortical or subcortical syndrome.'},
+  {label:'Nonconvulsive seizure', text:'It remains a consideration in unexplained altered awareness, but the current fluctuation and examination do not provide a strong ictal signal. The threshold for EEG should change if the trajectory changes.'}
+ ],
+ whatChanged:'Collateral establishing fluctuation, direct testing of attention, and repeated nonfocal examinations strengthen a diffuse delirium model. No single result proves delirium; the coherence of the time course, phenotype, and context does the work.',
+ uncertainty:'Delirium does not eliminate the possibility of a concurrent neurologic disorder. New focal findings, persistent unexplained depressed consciousness, stereotyped episodes, or failure to improve with correction of precipitants should reopen the differential.',
+ teach:[
+   'Delirium is an acute disorder of attention and cognition that typically fluctuates; attention testing and collateral about baseline and trajectory are central to recognizing it.',
+   'Context changes prior probability. In a vulnerable hospitalized older adult, several modest physiologic and environmental stressors may together be sufficient to produce delirium.',
+   'A nonfocal examination repeated over time supports diffuse cerebral dysfunction, but the model should be reopened if a stable focal syndrome or unexplained trajectory emerges.',
+   'Good reasoning is not synonymous with more testing. Additional imaging or EEG should answer a clinical question created by the phenotype or trajectory.'
+ ],
+ citations:['Oh et al., JAMA review of delirium in older persons (2017)','Inouye et al., delirium in elderly people (Lancet 2013)','Ahmed et al., delirium risk factors meta-analysis (Age and Ageing 2014)'],
+ trap:'Assuming that every acute change in a patient with vascular disease requires a hidden focal lesion—or, conversely, declaring delirium without first establishing an acute fluctuating attentional syndrome and checking for focal findings.'
+}
 
 ];
 
@@ -532,6 +634,14 @@ const CASE_REASONING = {
     'Ten minutes later he is more alert, follows one-step commands, and the right arm now has only mild drift. Dysarthria is improving.',
     'Twenty minutes later language is intact, he is oriented to self and hospital, and right arm strength is nearly symmetric. He remains tired.',
     'A later examination shows no recurrent focal deficit. If mental status were to worsen again without convulsive activity, nonconvulsive seizure would move back up the differential.'
+  ]},
+  c11:{tempo:'acute', localization:'multifocal_unclear', localizationOptions:['spinal_cord','conus_roots','pns','cortex','multifocal_unclear'], syndromeOptions:['paraparesis_mixed','aca','mimic'], hypotheses:['Spinal cord / conus process','Peripheral neuropathic or neuromuscular process','Cerebral ischemia','Inflammatory or infectious neurologic process','Critical-illness related weakness'], reexam:[
+    'On repeat examination he continues to follow commands with both arms. There is now trace hip flexion bilaterally but no reliable ankle movement. Knee reflexes remain reduced and ankle reflexes absent. No definite sensory level is found.',
+    'Later, proximal leg movement improves slightly while distal weakness and sensory complaints persist. The examination still does not collapse into a single clean central or peripheral localization.'
+  ]},
+  c12:{tempo:'fluctuating', localization:'diffuse', localizationOptions:['diffuse','cortex','subcortical','multifocal_unclear'], syndromeOptions:['acute_confusional','mimic','dominant_mca','nondominant_mca'], hypotheses:['Multifactorial delirium','Acute ischemic stroke','Nonconvulsive seizure / status','Medication effect','Other toxic-metabolic encephalopathy'], reexam:[
+    'Thirty minutes later she is more attentive and answers orientation questions correctly, though she still loses track during longer tasks. There is no focal motor, language, visual, or sensory deficit.',
+    'Later in the afternoon she is again drowsier and inattentive but arouses to voice and remains symmetric on focal neurologic examination.'
   ]}
 };
 
