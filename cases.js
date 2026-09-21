@@ -115,10 +115,10 @@ const ACTION_PURPOSE = {
   glucose:'Exclude a rapidly reversible metabolic mimic.',
   bp:'Determine whether blood pressure changes immediate treatment or helps explain the syndrome.',
   nihss:'Describe the current focal deficit; do not let the score substitute for localization.',
-  focused_exam:'Test the localization suggested by the presentation.',
-  attention_exam:'Define whether impaired attention/arousal is actually present.',
-  fatigability_exam:'Ask whether sustained activation converts a vague symptom into objective fatigable weakness.',
-  respiratory_bulbar_exam:'Determine whether bulbar or respiratory weakness changes the urgency of the neuromuscular problem.',
+  focused_exam:'Re-examine the findings most likely to discriminate among the plausible localizations.',
+  attention_exam:'Characterize attention and arousal more deeply than orientation alone.',
+  fatigability_exam:'Add provocative maneuvers for fatigability when a neuromuscular-junction syndrome is plausible.',
+  respiratory_bulbar_exam:'Add bulbar, neck, cough, and respiratory-muscle assessment when the syndrome makes them relevant.',
   reexam:'Use change over time as diagnostic information.',
   collateral:'Clarify baseline, timing, trajectory, and relevant context.',
   ems_timeline:'Separate last-known-well, discovery time, and observed onset.',
@@ -126,19 +126,19 @@ const ACTION_PURPOSE = {
   baseline:'Understand pre-illness function and what the current deficit means for this patient.',
   seizure_hx:'Assess whether seizure is a plausible competing explanation.',
   osh:'Recover prior neurologic information that could change the current model.',
-  ncct:'Exclude hemorrhage and look for structural clues that change acute management.',
-  cta:'Ask whether a vascular lesion explains the syndrome and changes reperfusion options.',
-  ctp:'Ask whether perfusion information would change an extended-window thrombolysis or EVT decision; do not treat CTP as a mandatory gate when CT/CTA and ASPECTS already establish an EVT pathway.',
-  mri:'Look for a structural correlate when MRI can resolve a remaining diagnostic question.',
+  ncct:'Answer the first structural question: hemorrhage or another major lesion, and in ischemic stroke assess early ischemic change when that affects reperfusion decisions.',
+  cta:'Define the arterial lesion when vascular localization is plausible and determine whether the finding creates an endovascular pathway.',
+  ctp:'Use perfusion imaging to characterize core and hypoperfused tissue when that information may inform reperfusion selection, prognosis, or local stroke-team decision making. Interpret it alongside the examination, NCCT/ASPECTS, and CTA.',
+  mri:'Use MRI when a remaining anatomic or tissue question could change the neurologic model or management, and interpret the image against the bedside syndrome.',
   mri_tspine:'Ask whether a thoracic cord lesion matches the bedside localization and excludes compression.',
   mri_lspine:'Evaluate conus, cauda equina, or lower structural disease when the phenotype remains lower than the known lesion.',
-  labs:'Look for systemic or metabolic contributors that plausibly explain the phenotype.',
-  eeg:'Ask whether persistent or episodic impaired awareness could be ictal.',
-  emg:'Characterize peripheral nervous system involvement when central and peripheral localizations remain in competition.',
-  lp:'Ask whether CSF can clarify an inflammatory or infectious mechanism.',
-  achr_musk:'Ask whether serology supports an autoimmune neuromuscular-junction disorder.',
-  rns:'Ask whether there is physiologic evidence of impaired neuromuscular transmission.',
-  ceeg:'Ask whether ongoing electrographic seizures are contributing to fluctuating or persistently impaired awareness.'
+  labs:'Test a specific systemic or metabolic hypothesis raised by the history, examination, or trajectory rather than ordering broad laboratory testing without a question.',
+  eeg:'Test an ictal hypothesis when the clinical phenotype or trajectory raises concern for ongoing or recurrent cortical electrical activity.',
+  emg:'Test whether the bedside syndrome has a peripheral nerve, root, plexus, neuromuscular, or muscle component and characterize the physiology when that distinction matters.',
+  lp:'Use CSF to test a plausible inflammatory, infectious, malignant, or other CSF-space mechanism after the bedside localization and imaging have defined the question.',
+  achr_musk:'Seek serologic support for autoimmune myasthenia once the clinical phenotype supports neuromuscular-junction dysfunction.',
+  rns:'Test the neuromuscular-junction hypothesis physiologically when the examination suggests fatigable weakness and confirmation would change diagnostic confidence.',
+  ceeg:'Quantify a dynamic electrographic process over time when intermittent or subclinical seizures remain plausible after the initial assessment.'
 };
 
 const ACTION_UPDATES = {
@@ -287,7 +287,7 @@ const CASES = [
  teach:[
    'Act on concordance: dense dominant-hemisphere syndrome, proximal occlusion on CTA, and favorable perfusion mismatch together support thrombectomy even when collateral history is incomplete.',
    'The 2026 AHA/ASA AIS guideline emphasizes streamlined imaging and systems-of-care so treatment is not delayed, even when you do not have all the information about a patient.',
-   'Use the current late-window EVT framework rather than older DAWN/DEFUSE-only rules. In the 2026 AHA/ASA guideline, proximal ICA/M1 occlusion from 6 to 24 hours can qualify for EVT using the clinical syndrome, CTA, and CT/ASPECTS criteria; advanced perfusion imaging can be useful when immediately available but is not a universal prerequisite.'
+   'Use the current late-window EVT framework. In the 2026 AHA/ASA guideline, selected proximal ICA/M1 occlusions from 6 to 24 hours can qualify for EVT using clinical features plus CT/CTA and ASPECTS; advanced perfusion imaging can also be useful when immediately available and remains part of many center-specific workflows.'
  ],
  citations:['2026 AHA/ASA Acute Ischemic Stroke Guideline','Gonzalez et al., Response on EVT imaging selection in the 6–24-hour window (Stroke 2026)'],
 },
@@ -320,7 +320,7 @@ const CASES = [
  teach:[
    'Recognize nondominant MCA cortex from the exam: gaze preference toward the lesion (right gaze), contralateral hemiparesis, hemianopia, and extinction or neglect are cortical findings, not a lacunar pattern.',
    'Score ASPECTS carefully but not fatalistically. Low ASPECTS predicts worse absolute prognosis, but it does not prove futility.',
-   'A large core on CTP does not necessarily exclude someone from thrombectomy. Discuss with neuro-IR and your attending/fellow.',
+   'CTP can help characterize the extent of established injury and residual hypoperfused tissue, and many stroke teams incorporate it into late-window decision making. Its findings should be integrated with CTA, ASPECTS, the examination, baseline function, and the broader clinical context rather than interpreted in isolation.',
    'Pooled lesson: a meta-analysis of six randomized large-core trials found better 90-day mRS (generalized OR 1.6) and more independent ambulation (RR 1.9), with higher symptomatic ICH (RR 1.7).',
    'The 2026 AHA/ASA guideline gives a Class 1 recommendation for selected proximal ICA/M1 occlusions 6 to 24 hours from onset with age under 80, NIHSS at least 6, prestroke mRS 0 to 1, ASPECTS 3 to 5, and no significant mass effect. It also makes EVT reasonable in selected ASPECTS 0 to 2 patients within 6 hours.'
  ],
@@ -553,7 +553,7 @@ const CASES = [
   collateral:'Family reports progressive burning pain and numbness in both feet with worsening gait for several weeks before this admission. He was still ambulatory before the acute respiratory illness, though less steadily than usual.',
   meds:'Neuromuscular blockade was discontinued several hours ago. Sedation has been lightened. No ongoing paralytic exposure.',
   baseline:'Before this hospitalization he walked independently but had recently become slower and less steady because of distal sensory symptoms.',
-  focused_exam:'Awake enough to follow commands. Cranial nerves are grossly symmetric. Upper extremity strength is antigravity and symmetric. Lower extremities show only trace proximal movement and no reliable distal movement. Tone is difficult to interpret because the legs remain markedly tense/guarded. Knee reflexes are reduced; ankle reflexes are absent. Plantar responses are mute. Pinprick is reduced distally in both feet without a clear thoracic sensory level. Saddle sensation is not clearly abnormal. Rectal tone has not yet been assessed.',
+  focused_exam:'A localization-focused repeat confirms reduced knee reflexes and absent ankle reflexes. Pinprick, vibration, and proprioception are compared side-to-side and distally-to-proximally; distal sensory loss remains more convincing than a truncal sensory level. Saddle sensation is not clearly abnormal. The strength pattern remains profound in both legs without a clean single-root distribution. These additions are used to discriminate cord, conus/roots, peripheral nerve, and multifocal disease rather than to replace the complete neurologic examination.',
   nihss:'NIHSS is difficult to interpret because bilateral leg weakness accounts for much of the score. There is no aphasia, neglect, gaze deviation, or convincing cortical sensory deficit.',
   ncct:'Head CT shows no hemorrhage.',
   cta:'CTA head/neck shows no proximal large-vessel occlusion.',
@@ -723,20 +723,20 @@ const CASES = [
 // Findings are intentionally written as raw observations rather than interpretive labels.
 // ============================================================
 const CASE_BEDSIDE = {
-  c1:{baseline:'Not yet established.',initialExam:{mental:'Awake. No intelligible verbal output. Does not reliably follow spoken commands.',cranial:'Eyes are persistently deviated to the left. Blink to threat is reduced on the right. Right lower facial movement is reduced.',motor:'Left arm and leg move spontaneously against gravity. No purposeful movement is seen in the right arm or right leg.',sensory:'Formal sensory testing is limited by the language deficit.',coordination:'Cannot be meaningfully tested on the weak side.',gait:'Deferred because of the acute deficit.'},strokeTools:['nihss']},
-  c2:{baseline:'Not yet established.',initialExam:{mental:'Awake but mute. Does not reliably follow spoken commands.',cranial:'Eyes are deviated to the left. Blink to threat is absent on the right. Right lower facial movement is reduced.',motor:'No purposeful movement is seen in the right arm or right leg; left limbs move against gravity.',sensory:'Formal testing is limited by impaired communication.',gait:'Deferred.'},strokeTools:['nihss']},
-  c3:{baseline:'Unknown on arrival.',initialExam:{mental:'Awake but nonverbal. Does not reliably follow spoken commands.',cranial:'Persistent leftward gaze. Reduced blink to threat on the right. Right lower facial movement is reduced.',motor:'Right arm and leg do not move purposefully; left arm and leg move against gravity.',sensory:'Formal testing is limited by impaired communication.',gait:'Deferred.'},strokeTools:['nihss']},
-  c4:{baseline:'Not yet established.',initialExam:{mental:'Awake. Answers simple questions but repeatedly fails to attend to people or stimuli on the left.',cranial:'Eyes tend to rest to the right. Blink to threat is reduced on the left. Left lower facial movement is reduced.',motor:'Left arm and leg are weaker than the right.',sensory:'Light touch is detected bilaterally when tested separately, but left-sided stimuli are missed during simultaneous bilateral stimulation.',coordination:'Testing on the left is limited by weakness and inattention.',gait:'Deferred.'},strokeTools:['nihss']},
-  c5:{baseline:'Not yet established.',initialExam:{mental:'Somnolent but arouses to voice. Speech is slurred.',cranial:'Left eyelid is ptotic. Left pupil is larger and poorly reactive. Left eye rests down and out. Right facial movement is symmetric.',motor:'Right arm and leg are weaker than the left.',sensory:'Responds to stimulation on both sides.',gait:'Deferred.'},strokeTools:['nihss']},
-  c6:{baseline:'Not yet established.',initialExam:{mental:'Alert and conversational. Speech is mildly slurred.',cranial:'Spontaneous horizontal left-beating nystagmus is visible in primary gaze. Facial movement is symmetric.',motor:'No clear unilateral arm or leg weakness.',coordination:'He is unable to sit upright without support. Limb testing is limited by severe nausea and vertigo.',gait:'Unable to stand safely because of severe truncal instability.'},strokeTools:['nihss']},
-  c7:{baseline:'Independent; works as a dentist and normally has full use of the dominant right hand.',initialExam:{mental:'Alert, oriented, and fluent.',cranial:'Visual fields, eye movements, and facial movement are symmetric.',motor:'No pronator drift. Proximal arm and leg strength is full. Right finger tapping is markedly slow and irregular; he cannot rapidly open and close the right hand or perform precise finger sequencing.',sensory:'Pinprick and proprioception are symmetric in both hands.',coordination:'Finger-to-nose is accurate bilaterally; fine distal right-hand movements are disproportionately impaired.',gait:'Normal casual gait.'},strokeTools:['nihss']},
-  c8:{baseline:'Not yet established.',initialExam:{mental:'Awake but produces no meaningful speech and does not reliably follow spoken commands.',cranial:'Eyes are deviated to the left. Blink to threat is reduced on the right. Right lower facial movement is reduced.',motor:'No purposeful movement is seen in the right arm or leg; left limbs move against gravity.',sensory:'Formal testing is limited by impaired communication.',gait:'Deferred.'},strokeTools:['nihss']},
-  c9:{baseline:'Not yet established.',initialExam:{mental:'Awake but uncomfortable and intermittently drowsy after vomiting. Speech is understandable.',cranial:'Pupils are symmetric and reactive. Left lower facial movement is reduced.',motor:'Left arm and leg drift downward and cannot sustain full antigravity effort. Right limbs are stronger.',sensory:'Pinprick is reduced on the left compared with the right.',gait:'Deferred because of acute weakness and severe headache.'},strokeTools:['nihss']},
-  c10:{baseline:'Not yet established.',initialExam:{mental:'Sleepy but opens eyes to voice. Answers slowly and is confused about recent events.',cranial:'No persistent gaze deviation. Facial movement is symmetric.',motor:'Mild downward drift of the right arm; legs move symmetrically.',sensory:'Responds to touch on both sides.',coordination:'Testing is slowed by somnolence.',gait:'Deferred.'},strokeTools:['nihss']},
-  c11:{baseline:'Before this hospitalization he walked independently, although family had recently noticed slower gait and distal sensory symptoms.',initialExam:{mental:'Awake enough to follow commands with both upper extremities.',cranial:'Face is symmetric. Eye movements are full. Speech cannot be fully assessed while intubated.',motor:'Upper extremities move symmetrically against gravity. Lower extremities show only trace proximal movement and no reliable distal movement. The legs remain markedly tense during examination, making tone difficult to interpret.',sensory:'Pinprick is reduced distally in both feet. No definite truncal sensory level is identified on the first examination.',reflexes:'Knee reflexes are reduced. Ankle reflexes are absent. Plantar responses are mute.',gait:'Not testable.'}},
-  c12:{baseline:'Before admission she managed basic activities and normal conversation independently; family reports no established dementia diagnosis.',initialExam:{mental:'Awake and conversational. Oriented to name and hospital. Easily distracted and loses the thread of conversation. Performance on multi-step commands is inconsistent.',cranial:'Visual fields, eye movements, facial sensation, and facial movement are symmetric.',motor:'No pronator drift. Strength is symmetric within the limits of pain and deconditioning.',sensory:'Light touch is symmetric.',coordination:'Finger-to-nose is accurate bilaterally.',gait:'Not tested during the initial bedside assessment.'}},
+  c1:{baseline:'Not yet established.',initialExam:{mental:'Awake. No intelligible verbal output. Does not reliably follow spoken commands.',cranial:'Eyes are persistently deviated to the left. Blink to threat is reduced on the right. Pupils are symmetric and reactive. Right lower facial movement is reduced; tongue assessment is limited by inability to follow commands.',motor:'Left arm and leg move spontaneously against gravity. No purposeful movement is seen in the right arm or right leg. Bulk is preserved; no abnormal movements are seen.',sensory:'Light touch and pinprick testing are limited by the language deficit; reliable vibration and proprioception testing cannot be obtained.',coordination:'Left finger-to-nose is without clear dysmetria. Testing on the right is limited by weakness.',reflexes:'Deep tendon reflexes are present and roughly symmetric; plantar responses are not clearly asymmetric.',gait:'Deferred because of the acute deficit.'},strokeTools:['nihss']},
+  c2:{baseline:'Not yet established.',initialExam:{mental:'Awake but mute. Does not reliably follow spoken commands.',cranial:'Eyes are deviated to the left. Blink to threat is absent on the right. Pupils are symmetric and reactive. Right lower facial movement is reduced.',motor:'No purposeful movement is seen in the right arm or right leg; left limbs move against gravity. No abnormal movements are seen.',sensory:'Light touch and pinprick testing are limited by impaired communication; vibration and proprioception cannot be assessed reliably.',coordination:'Left finger-to-nose shows no clear dysmetria; right-sided testing is limited by weakness.',reflexes:'Deep tendon reflexes are present bilaterally; plantar responses are not clearly asymmetric.',gait:'Deferred.'},strokeTools:['nihss']},
+  c3:{baseline:'Unknown on arrival.',initialExam:{mental:'Awake but nonverbal. Does not reliably follow spoken commands.',cranial:'Persistent leftward gaze. Reduced blink to threat on the right. Pupils are symmetric and reactive. Right lower facial movement is reduced.',motor:'Right arm and leg do not move purposefully; left arm and leg move against gravity. No abnormal movements are seen.',sensory:'Light touch and pinprick testing are limited by impaired communication; vibration and proprioception cannot be assessed reliably.',coordination:'Left finger-to-nose shows no clear dysmetria; right-sided testing is limited by weakness.',reflexes:'Deep tendon reflexes are present bilaterally; plantar responses are not clearly asymmetric.',gait:'Deferred.'},strokeTools:['nihss']},
+  c4:{baseline:'Not yet established.',initialExam:{mental:'Awake. Answers simple questions but repeatedly fails to attend to people or stimuli on the left.',cranial:'Eyes tend to rest to the right. Blink to threat is reduced on the left. Pupils are symmetric and reactive. Left lower facial movement is reduced.',motor:'Left arm and leg are weaker than the right; no abnormal movements are seen.',sensory:'Light touch and pinprick are detected bilaterally when tested separately, but left-sided stimuli are missed during simultaneous bilateral stimulation. Proprioception is grossly preserved where participation allows.',coordination:'Testing on the left is limited by weakness and inattention; right finger-to-nose is accurate.',reflexes:'Deep tendon reflexes are present bilaterally; plantar responses are not clearly asymmetric.',gait:'Deferred.'},strokeTools:['nihss']},
+  c5:{baseline:'Not yet established.',initialExam:{mental:'Somnolent but arouses to voice. Speech is slurred.',cranial:'Left eyelid is ptotic. Left pupil is larger and poorly reactive. Left eye rests down and out. Facial movement is otherwise symmetric.',motor:'Right arm and leg are weaker than the left; bulk is preserved and no abnormal movements are seen.',sensory:'Light touch and pinprick are appreciated on both sides; detailed vibration and proprioception testing is limited by somnolence.',coordination:'Left finger-to-nose is without clear dysmetria; right-sided testing is limited by weakness.',reflexes:'Deep tendon reflexes are present bilaterally; plantar responses are not clearly asymmetric.',gait:'Deferred.'},strokeTools:['nihss']},
+  c6:{baseline:'Not yet established.',initialExam:{mental:'Alert and conversational. Speech is mildly slurred.',cranial:'Pupils are symmetric and reactive. Spontaneous horizontal left-beating nystagmus is visible in primary gaze. Extraocular movements are full. Facial sensation and movement are symmetric; hearing is grossly intact.',motor:'Normal bulk and tone. No pronator drift or clear unilateral arm or leg weakness.',sensory:'Light touch, pinprick, vibration, and proprioception are symmetric in the limbs.',coordination:'Finger-to-nose and heel-to-shin show no clear appendicular dysmetria, but he is unable to sit upright without support.',reflexes:'Deep tendon reflexes are 2+ and symmetric; plantar responses are flexor.',gait:'Unable to stand safely because of severe truncal instability.'},strokeTools:['nihss']},
+  c7:{baseline:'Independent; works as a dentist and normally has full use of the dominant right hand.',initialExam:{mental:'Alert, oriented, attentive, and fluent.',cranial:'Pupils, visual fields, eye movements, facial sensation, facial movement, palate, and tongue are symmetric.',motor:'Normal bulk and tone. No pronator drift. Proximal arm and leg strength is full. Right finger tapping is markedly slow and irregular; he cannot rapidly open and close the right hand or perform precise finger sequencing.',sensory:'Light touch, pinprick, vibration, and proprioception are symmetric in both hands and feet.',coordination:'Finger-to-nose and heel-to-shin are accurate bilaterally; fine distal right-hand movements are disproportionately impaired.',reflexes:'Deep tendon reflexes are 2+ and symmetric; plantar responses are flexor.',gait:'Normal casual and tandem gait.'},strokeTools:['nihss']},
+  c8:{baseline:'Not yet established.',initialExam:{mental:'Awake but produces no meaningful speech and does not reliably follow spoken commands.',cranial:'Eyes are deviated to the left. Blink to threat is reduced on the right. Pupils are symmetric and reactive. Right lower facial movement is reduced.',motor:'No purposeful movement is seen in the right arm or leg; left limbs move against gravity. No abnormal movements are seen.',sensory:'Light touch and pinprick testing are limited by impaired communication; vibration and proprioception cannot be assessed reliably.',coordination:'Left finger-to-nose shows no clear dysmetria; right-sided testing is limited by weakness.',reflexes:'Deep tendon reflexes are present bilaterally; plantar responses are not clearly asymmetric.',gait:'Deferred.'},strokeTools:['nihss']},
+  c9:{baseline:'Not yet established.',initialExam:{mental:'Awake but uncomfortable and intermittently drowsy after vomiting. Speech is understandable.',cranial:'Pupils are symmetric and reactive. Extraocular movements are full. Left lower facial movement is reduced.',motor:'Left arm and leg drift downward and cannot sustain full antigravity effort. Right limbs are stronger; no abnormal movements are seen.',sensory:'Light touch and pinprick are reduced on the left compared with the right; vibration and proprioception are grossly preserved.',coordination:'Right finger-to-nose is accurate; left-sided testing is limited by weakness.',reflexes:'Deep tendon reflexes are present bilaterally; plantar responses are not clearly asymmetric.',gait:'Deferred because of acute weakness and severe headache.'},strokeTools:['nihss']},
+  c10:{baseline:'Not yet established.',initialExam:{mental:'Sleepy but opens eyes to voice. Answers slowly and is confused about recent events.',cranial:'Pupils are symmetric and reactive. No persistent gaze deviation. Extraocular movements are full when he participates. Facial movement is symmetric.',motor:'Normal bulk. Mild downward drift of the right arm; legs move symmetrically. No ongoing rhythmic movements are seen.',sensory:'Light touch and pinprick are appreciated on both sides; detailed vibration and proprioception testing is limited by somnolence.',coordination:'Finger-to-nose is slowed by somnolence without clear dysmetria.',reflexes:'Deep tendon reflexes are present and symmetric; plantar responses are flexor.',gait:'Deferred.'},strokeTools:['nihss']},
+  c11:{baseline:'Before this hospitalization he walked independently, although family had recently noticed slower gait and distal sensory symptoms.',initialExam:{mental:'Awake enough to follow commands with both upper extremities.',cranial:'Pupils are symmetric and reactive. Eye movements are full. Face is symmetric. Speech cannot be fully assessed while intubated.',motor:'Upper extremities move symmetrically against gravity. Lower extremities show only trace proximal movement and no reliable distal movement. The legs remain markedly tense during examination, making tone difficult to interpret. No fasciculations are seen.',sensory:'Pinprick is reduced distally in both feet. Vibration is reduced at the toes and proprioception is difficult to assess reliably. No definite truncal sensory level is identified on the first examination.',coordination:'Finger-to-nose is accurate in both upper extremities. Lower-extremity coordination cannot be tested because of weakness.',reflexes:'Biceps, triceps, and brachioradialis reflexes are present. Knee reflexes are reduced. Ankle reflexes are absent. Plantar responses are mute.',gait:'Not testable.'}},
+  c12:{baseline:'Before admission she managed basic activities and normal conversation independently; family reports no established dementia diagnosis.',initialExam:{mental:'Awake and conversational. Oriented to name and hospital. Easily distracted and loses the thread of conversation. Performance on multi-step commands is inconsistent.',cranial:'Pupils are symmetric and reactive. Visual fields, eye movements, facial sensation, facial movement, palate, and tongue are symmetric.',motor:'Normal bulk and tone. No pronator drift or abnormal movements. Strength is symmetric within the limits of pain and deconditioning.',sensory:'Light touch, pinprick, vibration, and proprioception are symmetric where cooperation is reliable.',coordination:'Finger-to-nose and finger taps are accurate bilaterally.',reflexes:'Deep tendon reflexes are present and symmetric; plantar responses are flexor.',gait:'Not tested during the initial bedside assessment.'}},
   c13:{baseline:'Fully independent with normal speech, swallowing, and mobility before this illness.',initialExam:{mental:'Alert, oriented, attentive, and fluent. Language is normal.',cranial:'Pupils are symmetric and reactive. Extraocular movements are full on brief testing. Facial sensation is intact. Facial activation is mildly weak but symmetric. Speech is mildly slurred. Tongue is midline without atrophy.',motor:'Normal bulk and tone. No pronator drift or fasciculations. Limb strength is near full on brief confrontation testing.',sensory:'Pinprick, vibration, and proprioception are intact.',coordination:'Finger-to-nose and finger taps are accurate on brief testing.',reflexes:'Biceps, triceps, brachioradialis, patellar, and ankle reflexes are 2+ and symmetric. Plantar responses are flexor.',gait:'Casual gait is normal.'}},
-  c14:{baseline:'Earlier in the day he was conversational and consistently followed commands despite known metastatic disease.',initialExam:{mental:'Opens eyes to voice. At times tracks and follows a one-step command; several minutes later he may stare without responding while remaining awake.',cranial:'Pupils are symmetric and reactive. No persistent gaze deviation is present between episodes. Facial movement is grossly symmetric.',motor:'No new dense unilateral weakness is identified. All four limbs move against gravity when he participates.',sensory:'Withdraws or localizes to stimulation on both sides.',coordination:'Formal testing is limited by fluctuating participation.',gait:'Not tested.'}}
+  c14:{baseline:'Earlier in the day he was conversational and consistently followed commands despite known metastatic disease.',initialExam:{mental:'Opens eyes to voice. At times tracks and follows a one-step command; several minutes later he may stare without responding while remaining awake.',cranial:'Pupils are symmetric and reactive. No persistent gaze deviation is present between episodes. Extraocular movements are grossly full when he participates. Facial movement is grossly symmetric.',motor:'No new dense unilateral weakness is identified. All four limbs move against gravity when he participates. No continuous convulsive activity is seen.',sensory:'Withdraws or localizes to light touch and pinprick on both sides; higher-order sensory testing is limited by fluctuating participation.',coordination:'Formal finger-to-nose testing is intermittently possible and does not show a consistent lateralized dysmetria.',reflexes:'Deep tendon reflexes are present bilaterally without a clear new asymmetry; plantar responses are not clearly asymmetric.',gait:'Not tested.'}}
 };
 CASES.forEach(c=>Object.assign(c,CASE_BEDSIDE[c.id]||{}));
 
@@ -754,8 +754,8 @@ const CASE_DESIGN = {
     activeQuestions:{
       cta:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there a proximal arterial occlusion that changes the endovascular pathway?',correct:true},
-        {label:'Can CTA determine whether the current deficit is disabling?'},
-        {label:'Can CTA exclude every important stroke mimic?'}],
+        {label:'Is there already enough noncontrast CT change to estimate infarct burden?'},
+        {label:'Would perfusion imaging add tissue information beyond the vessel study?'}],
         feedback:'CTA is being used to identify the vascular lesion and determine whether EVT should run in parallel. The clinical examination and functional impact establish the syndrome and disability; CTA should not replace them.'}
     }
   },
@@ -767,13 +767,13 @@ const CASE_DESIGN = {
     activeQuestions:{
       ctp:{prompt:'Why are you ordering CTP?',options:[
         {label:'Is there salvageable tissue that could make extended-window reperfusion reasonable?',correct:true},
-        {label:'What exact clock time did the stroke begin?'},
-        {label:'Does the patient definitely have a cortical syndrome?'}],
-        feedback:'CTP answers a tissue question, not a clock question. In the 2026 AHA/ASA guideline, perfusion imaging can be useful for extended-window IV thrombolysis and can assist EVT evaluation when immediately available. For many proximal LVO patients, however, treatment eligibility can be established from the examination, CT/CTA, and ASPECTS; CTP should answer a tissue question rather than function as a routine gate.'},
+        {label:'Is there a proximal arterial occlusion that would create an EVT pathway?'},
+        {label:'Is there hemorrhage or extensive established infarction on the noncontrast CT?'}],
+        feedback:'CTP answers a tissue-status question rather than determining the exact onset time. In the 2026 AHA/ASA guideline, perfusion imaging can be useful for extended-window IV thrombolysis and for EVT evaluation when immediately available. Its role varies with the clinical scenario and local workflow; interpret it together with the examination, CT/CTA, and ASPECTS.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there an imaging mismatch that can help select an unknown-onset stroke for treatment?',correct:true},
-        {label:'Can MRI prove the patient was normal at 10 PM?'},
-        {label:'Can MRI replace the bedside localization?'}],
+        {label:'Is there a proximal occlusion that requires vascular imaging and EVT planning?'},
+        {label:'Is there hemorrhage that would change the immediate pathway?'}],
         feedback:'DWI/FLAIR mismatch is a treatment-selection concept in appropriately selected unknown-onset stroke. It complements the clinical syndrome; it does not reconstruct the exact onset or replace localization.'}
     }
   },
@@ -785,9 +785,9 @@ const CASE_DESIGN = {
     activeQuestions:{
       ctp:{prompt:'Why are you ordering CTP?',options:[
         {label:'To characterize tissue status when the time window is uncertain and ask whether that information changes reperfusion options.',correct:true},
-        {label:'To determine the exact last-known-well time.'},
-        {label:'Because every LVO requires perfusion imaging before thrombectomy.'}],
-        feedback:'CTP characterizes core and hypoperfused tissue when that information could change treatment selection. It does not reconstruct onset, and it should not delay EVT when the examination, CT/CTA, and ASPECTS already establish an appropriate pathway.'}
+        {label:'To define the occlusion site and vascular anatomy for thrombectomy planning.'},
+        {label:'To exclude hemorrhage and estimate early ischemic change on the noncontrast CT.'}],
+        feedback:'CTP characterizes core and hypoperfused tissue when that information may refine treatment selection. It does not reconstruct onset. Some stroke teams incorporate perfusion imaging routinely in late-window evaluation, while current guideline pathways also allow selected patients to be assessed using the clinical syndrome, CT/CTA, and ASPECTS.'}
     }
   },
   c4:{
@@ -795,11 +795,13 @@ const CASE_DESIGN = {
     clinicalQuestion:'Does a large established infarct burden make thrombectomy futile, or is there still a reasonable EVT pathway?',
     finalManagementLabel:'Endovascular treatment decision',
     debriefDecisionTitle:'Large-core thrombectomy reasoning',
-    activeQuestions:{ctp:{prompt:'Why are you ordering CTP?',options:[
-      {label:'How much tissue is already infarcted and how much remains potentially salvageable?',correct:true},
-      {label:'Whether the patient has neglect'},
-      {label:'Whether the occlusion is in the right or left hemisphere'}],
-      feedback:'CTP can refine core and hypoperfusion estimates, but it is not a stand-alone futility test or a universal gate to late-window proximal LVO thrombectomy. Its value is whether the tissue information changes a decision after the examination, NCCT/ASPECTS, CTA, time, and baseline are considered.'}}
+    activeQuestions:{
+      ctp:{prompt:'Why are you ordering CTP?',options:[
+        {label:'To characterize core and hypoperfused tissue and see whether that information adds to the EVT discussion.',correct:true},
+        {label:'To determine whether the examination localizes to the right hemisphere.'},
+        {label:'To identify the occlusion site and vascular anatomy for thrombectomy planning.'}],
+        feedback:'CTP can add useful tissue information in a late-window large-core presentation and is incorporated into many stroke-team workflows. It should be interpreted as one part of the treatment-selection picture alongside the examination, CTA, ASPECTS, baseline function, and the rest of the clinical context; a large estimated core does not by itself establish futility.'}
+    }
   },
   c5:{
     availableActions:['nihss','ncct','cta','reexam'],
@@ -814,20 +816,15 @@ const CASE_DESIGN = {
     debriefDecisionTitle:'Using HINTS within the syndrome, not as a shortcut',
     actionPurpose:{nihss:'Quantify deficits captured by the NIHSS while recognizing that the score underrepresents truncal, gait, and ocular-motor abnormalities.'},
     activeQuestions:{
-      focused_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Do the eye movement and balance findings cohere with a peripheral vestibular lesion, or is there discordance suggesting a central process?',correct:true},
-        {label:'Can the NIHSS determine whether this is peripheral vertigo?'},
-        {label:'Does any corrective saccade exclude posterior circulation stroke?'}],
-        feedback:'Interpret the individual ocular motor and postural findings in the context of a continuous acute vestibular syndrome. The goal is not to obtain a HINTS label; it is to decide whether the observed findings cohere with one localization.'},
       nihss:{prompt:'What question are you trying to answer?',options:[
         {label:'Which deficits are captured by the NIHSS, and what important findings does it miss?',correct:true},
-        {label:'Can a low NIHSS rule out posterior circulation stroke?'},
-        {label:'Can NIHSS distinguish vestibular neuritis from cerebellar stroke by itself?'}],
+        {label:'How disabling is the gait or truncal deficit for this patient despite a low score?'},
+        {label:'Do the ocular-motor findings form a coherent central or peripheral vestibular pattern?'}],
         feedback:'NIHSS describes some deficits but does not settle an acute vestibular localization. Eye findings, truncal stability, cranial nerves, tempo, and associated symptoms remain essential.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there a structural posterior-fossa correlate for the central features that remain unexplained?',correct:true},
-        {label:'Can a negative early MRI always rule out posterior circulation stroke?'},
-        {label:'Is bedside examination unnecessary whenever MRI is available?'}],
+        {label:'Is there a vascular lesion on CTA that already explains the posterior-circulation syndrome?'},
+        {label:'Has the bedside ocular-motor and gait examination changed on reassessment?'}],
         feedback:'MRI may provide a structural correlate, but bedside findings and imaging should be reconciled rather than treated as competing absolute tests.'}
     }
   },
@@ -839,8 +836,8 @@ const CASE_DESIGN = {
     activeQuestions:{
       collateral:{prompt:'What question are you trying to answer?',options:[
         {label:'What does this deficit prevent this patient from doing in his normal life?',correct:true},
-        {label:'Can occupation alone prove that thrombolysis is required?'},
-        {label:'Can collateral determine the infarct location?'}],
+        {label:'What was the exact last-known-well and how certain is that history?'},
+        {label:'Was there a witnessed seizure or other event that would change the competing diagnosis?'}],
         feedback:'Functional disability is patient-specific. The useful question is what the new deficit prevents the patient from doing—not whether the NIHSS is low or whether a job title automatically determines treatment.'}
     }
   },
@@ -864,8 +861,8 @@ const CASE_DESIGN = {
     activeQuestions:{
       eeg:{prompt:'What question are you trying to answer?',options:[
         {label:'Is persistent or recurrent impaired awareness being driven by ongoing ictal activity?',correct:true},
-        {label:'Did the witnessed convulsion definitely cause the weakness?'},
-        {label:'Can EEG exclude acute ischemic stroke?'}],
+        {label:'Has the focal deficit continued to improve on serial examination, supporting a postictal trajectory?'},
+        {label:'Is there a structural or vascular lesion that still needs to be excluded in parallel?'}],
         feedback:'EEG answers an ictal question. It is most useful when impaired awareness or focal deficits remain unexplained or fluctuate in a way that raises concern for ongoing seizure; it does not substitute for structural evaluation when stroke remains plausible.'}
     }
   },
@@ -878,36 +875,32 @@ const CASE_DESIGN = {
     finalManagementHelp:'Choose the next direction that best addresses the unresolved high-stakes uncertainty.',
     debriefDecisionTitle:'Competing localizations and choosing the next test',
     actionPurpose:{
+      focused_exam:'Complete the full neurologic examination first. For bilateral leg weakness, deliberately re-check strength distribution, reflexes, pinprick, vibration, proprioception, sensory level, and sacral findings because those observations discriminate among cord, conus/roots, peripheral nerve, and multifocal disease.',
       mri_tspine:'Does the thoracic abnormality actually match the bedside syndrome, and is there an urgent compressive lesion?',
       mri_lspine:'Is there a conus/cauda or lower structural process that better matches the examination?',
       emg:'Is there a meaningful peripheral neuropathic, radicular, plexus, or myopathic contribution?',
       lp:'If inflammation or infection remains plausible, does CSF provide evidence for that mechanism?'
     },
     activeQuestions:{
-      focused_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Which level of the neuraxis best explains the pattern of weakness, sensation, and reflexes?',correct:true},
-        {label:'Can one abnormal MRI substitute for localization?'},
-        {label:'Does reduced reflexes prove the process is peripheral?'}],
-        feedback:'The targeted examination is meant to discriminate among cord, conus/roots, peripheral nerve, and multifocal disease. Strength distribution, reflexes, sensory level, sacral findings, and serial change are more informative together than any single sign.'},
       mri_tspine:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there a thoracic cord lesion that anatomically explains the syndrome, and is it compressive?',correct:true},
-        {label:'Does any thoracic MRI abnormality automatically establish the cause of weakness?'},
-        {label:'Can thoracic MRI exclude a peripheral process?'}],
+        {label:'Could a lower conus/cauda process better explain the pattern on examination?'},
+        {label:'Is the weakness predominantly peripheral and better addressed with electrodiagnostic testing?'}],
         feedback:'The MRI must be tested against the phenotype. A real thoracic lesion can be incidental, chronic, or only partly explanatory; compression, lesion distribution, tempo, and the examination determine its significance.'},
       mri_lspine:{prompt:'What question are you trying to answer?',options:[
         {label:'Could a conus/cauda or lower structural process explain findings not accounted for by the thoracic lesion?',correct:true},
-        {label:'Can lumbar MRI determine whether the brain infarcts are acute?'},
-        {label:'Will degenerative changes necessarily explain profound bilateral weakness?'}],
+        {label:'Does the thoracic lesion already provide a complete anatomic explanation for the examination?'},
+        {label:'Would electrodiagnostic testing better address a suspected diffuse peripheral process?'}],
         feedback:'Lumbar/conus imaging is useful because the bedside localization remains lower or mixed. The goal is not to find any abnormality; it is to find a lesion that actually accounts for the syndrome and excludes a high-stakes compressive process.'},
       emg:{prompt:'What question are you trying to answer?',options:[
         {label:'Is a peripheral neuropathic, radicular, plexus, or myopathic process contributing to the weakness?',correct:true},
-        {label:'Is there CSF inflammation supporting myelitis?'},
-        {label:'Are the cerebral infarcts in an ACA distribution?'}],
+        {label:'Is there a compressive spinal lesion that requires urgent imaging rather than electrodiagnostic characterization?'},
+        {label:'Is there an inflammatory or infectious mechanism that would be better tested with CSF?'}],
         feedback:'EMG/NCS tests the peripheral branch of the localization. It can characterize axonal versus demyelinating physiology and patterns such as neuropathy, radiculopathy, plexopathy, or myopathy. Timing matters: an early nondiagnostic study may not yet exclude a clinically plausible peripheral process.'},
       lp:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there CSF evidence supporting an inflammatory or infectious neurologic mechanism?',correct:true},
-        {label:'Where exactly along the neuraxis is the weakness localized?'},
-        {label:'Does CSF prove the thoracic lesion is acute?'}],
+        {label:'Is there a structural spinal lesion that requires MRI characterization or decompression?'},
+        {label:'Is there a peripheral physiologic pattern that would be better tested with EMG/NCS?'}],
         feedback:'LP is primarily an etiologic test here, not a localization test. Cell count, protein, glucose, IgG index/oligoclonal bands, and targeted infectious studies can support or weaken inflammatory or infectious mechanisms, but the result still has to fit the tempo, examination, and MRI.'}
     }
   },
@@ -918,25 +911,15 @@ const CASE_DESIGN = {
     finalManagementLabel:'What would you do now?',
     debriefDecisionTitle:'When additional neurologic testing would actually change the model',
     activeQuestions:{
-      attention_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Is there an acute disturbance of attention or arousal that fluctuates over time?',correct:true},
-        {label:'Can orientation alone establish or exclude delirium?'},
-        {label:'Does inattention by itself localize to one cerebral hemisphere?'}],
-        feedback:'Direct attention testing converts a vague report of confusion into an observable cognitive phenotype. Pattern and fluctuation matter more than a single orientation question.'},
-      focused_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Is there a reproducible focal neurologic deficit that requires a different localization?',correct:true},
-        {label:'Can a normal single examination prove there is no neurologic disease?'},
-        {label:'Does chronic small-vessel disease explain the current fluctuation?'}],
-        feedback:'The focal examination looks for a stable localizing syndrome that would change the model. Repetition matters when the complaint itself fluctuates.'},
       eeg:{prompt:'What question are you trying to answer?',options:[
         {label:'Is the unexplained alteration in awareness persistent or stereotyped enough to suspect ictal activity?',correct:true},
-        {label:'Can EEG confirm multifactorial delirium?'},
-        {label:'Can EEG rule out a small ischemic stroke?'}],
+        {label:'Has a persistent focal syndrome emerged that would make structural imaging the higher-yield next test?'},
+        {label:'Is the fluctuation tightly linked to systemic illness, medications, sleep, or other delirium precipitants?'}],
         feedback:'EEG is useful when the phenotype creates an ictal question—persistent unexplained impaired awareness, stereotyped episodes, or fluctuations not explained by the systemic course. It is not a routine confirmation test for delirium.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Has a persistent focal syndrome or unexplained trajectory emerged that now warrants structural imaging?',correct:true},
-        {label:'Does every episode of inpatient confusion require MRI?'},
-        {label:'Can MRI establish delirium as the diagnosis?'}],
+        {label:'Is there a stereotyped or persistent alteration in awareness that would make EEG the higher-yield test?'},
+        {label:'Is the examination still nonfocal and the trajectory still explained by systemic delirium precipitants?'}],
         feedback:'MRI should answer a structural question created by the phenotype or trajectory. More testing is not automatically more rigorous.'}
     }
   },
@@ -946,26 +929,20 @@ const CASE_DESIGN = {
     finalInterpretationLabel:'Best current localization and syndrome',
     finalManagementLabel:'Most important next step',
     debriefDecisionTitle:'Turning "fatigue" into a localizable neurologic finding',
+    actionPurpose:{
+      fatigability_exam:'The complete neurologic exam is already done. Add sustained upgaze, repeated facial activation, prolonged speech, and repetitive proximal testing because fatigability is syndrome-specific.',
+      respiratory_bulbar_exam:'Add neck flexion, speech endurance, cough, secretion handling, swallowing, work of breathing, and respiratory measurements because the syndrome raises a bulbar/respiratory severity question.'
+    },
     activeQuestions:{
-      fatigability_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Does sustained activation reveal objective fatigable weakness?',correct:true},
-        {label:'Does the patient report feeling tired? '},
-        {label:'Is dysarthria always caused by a brainstem lesion?'}],
-        feedback:'Provocative examination converts a vague symptom into an observable physiologic pattern. Reproducible worsening with sustained activation changes the localization far more than the word "fatigue" alone.'},
-      respiratory_bulbar_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Is bulbar or respiratory weakness severe enough to change the urgency and level of monitoring?',correct:true},
-        {label:'Can a normal brief limb exam exclude myasthenia? '},
-        {label:'Does dysarthria severity identify the antibody subtype?'}],
-        feedback:'Bulbar symptoms are also a severity question. History and serial bedside examination come first. NIF and vital capacity provide useful baseline and trend data, but they are effort- and technique-dependent and should not be treated as single pass/fail thresholds. Follow them alongside speech endurance, neck flexion, cough, secretion handling, swallowing, and work of breathing.'},
       achr_musk:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there serologic evidence supporting autoimmune myasthenia gravis?',correct:true},
-        {label:'How weak is the patient right now?'},
-        {label:'Can antibody testing replace the bedside examination?'}],
+        {label:'Is there physiologic decrement on repetitive stimulation supporting impaired neuromuscular transmission?'},
+        {label:'Is current bulbar or respiratory function worsening enough to change the level of monitoring?'}],
         feedback:'Antibody testing can confirm and phenotype autoimmune MG, but it does not measure current respiratory/bulbar severity and a negative result does not automatically erase a convincing fatigable clinical syndrome.'},
       rns:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there physiologic evidence of impaired neuromuscular transmission?',correct:true},
-        {label:'Is there cortical ischemia causing the dysarthria?'},
-        {label:'Is the patient subjectively fatigued?'}],
+        {label:'Is there serologic evidence supporting autoimmune MG?'},
+        {label:'Is the current bulbar or respiratory weakness severe enough to require escalation?'}],
         feedback:'RNS tests the neuromuscular-junction hypothesis physiologically. Its interpretation should remain anchored to the distribution and reproducibility of weakness on examination.'}
     }
   },
@@ -976,30 +953,20 @@ const CASE_DESIGN = {
     finalManagementLabel:'Most important next step',
     debriefDecisionTitle:'When an obvious structural abnormality is not the whole explanation',
     activeQuestions:{
-      attention_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Is awareness persistently depressed, or does responsiveness fluctuate over minutes?',correct:true},
-        {label:'Can a single GCS-like snapshot distinguish edema from seizure?'},
-        {label:'Does known metastatic disease make serial examination unnecessary?'}],
-        feedback:'The trajectory itself is diagnostically important. Abrupt within-encounter changes in responsiveness create a different physiologic question than sustained somnolence.'},
-      focused_exam:{prompt:'What question are you trying to answer?',options:[
-        {label:'Do transient focal motor, ocular, or language findings accompany the fluctuations?',correct:true},
-        {label:'Does the absence of dense hemiplegia exclude seizures?'},
-        {label:'Can the examination determine the tumor histology?'}],
-        feedback:'Subtle transient focal observations can be the clue that altered mental status has a dynamic cortical component. The goal is to observe the event, not label it before EEG.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Has the structural disease changed enough to explain the new neurologic trajectory?',correct:true},
-        {label:'Can MRI exclude nonconvulsive status epilepticus? '},
-        {label:'Does any amount of edema automatically explain fluctuating awareness?'}],
+        {label:'Is there a dynamic cortical process that requires EEG because imaging cannot measure electrical activity?'},
+        {label:'Is the current examination and trajectory stable enough that serial bedside reassessment may be more informative than repeat imaging?'}],
         feedback:'Imaging establishes the structural substrate and can reveal progression, hemorrhage, infarction, or mass effect. It cannot determine whether fluctuating cortical electrical activity is simultaneously present.'},
       eeg:{prompt:'What question are you trying to answer?',options:[
         {label:'Is ongoing ictal activity contributing to the fluctuating mental status?',correct:true},
-        {label:'Is the vasogenic edema real?'},
-        {label:'Can a short EEG quantify the entire future seizure burden?'}],
+        {label:'Has structural disease progressed enough to explain the neurologic change without an additional ictal process?'},
+        {label:'Would a brief study be insufficient because the episodes are intermittent or the initial EEG shows high-risk epileptiform activity?'}],
         feedback:'The phenotype creates an ictal question. A routine EEG can reveal seizures or high-risk epileptiform patterns, but intermittent abnormalities may require longer monitoring.'},
       ceeg:{prompt:'What question are you trying to answer?',options:[
         {label:'What is the ongoing electrographic seizure burden, and does it respond to treatment over time?',correct:true},
-        {label:'Can continuous EEG determine the histology of the metastases?'},
-        {label:'Can continuous EEG distinguish vasogenic from cytotoxic edema?'}],
+        {label:'Has structural imaging shown progression, hemorrhage, or mass effect that requires separate treatment?'},
+        {label:'Has the bedside examination normalized enough that ongoing electrographic monitoring would no longer answer a meaningful question?'}],
         feedback:'Continuous EEG is used because the process is dynamic. It detects intermittent or subclinical seizures and provides a time series for response and recurrence when the bedside examination alone is insufficient.'}
     }
   }

@@ -1,6 +1,6 @@
 "use strict";
 
-const KEY = "acute_neurology_reasoning_v26";
+const KEY = "acute_neurology_reasoning_v27";
 const ONBOARD_KEY = "acute_neurology_reasoning_onboarded";
 const THEMES = {
   all:"All presentations",
@@ -144,7 +144,7 @@ function workflowHTML(){
 }
 function clarifyButtonsHTML(includeFinalize=false){
   return `<div class="clarify-actions">
-    <button class="primary clarify-exam" id="nextExamine"><span>Examine further</span><small>Refine localization or characterize the syndrome</small></button>
+    <button class="primary clarify-exam" id="nextExamine"><span>Targeted maneuvers</span><small>Add syndrome-specific maneuvers after the complete neurologic examination</small></button>
     <button class="secondary" id="nextAsk"><span>Ask</span><small>Clarify history, baseline, or trajectory</small></button>
     <button class="secondary" id="nextTest"><span>Test</span><small>Resolve a specific diagnostic or management uncertainty</small></button>
     ${includeFinalize?'<button class="ghost" id="nextFinalize">Finalize assessment</button>':''}
@@ -185,7 +185,7 @@ function additionalExamHTML(c){
 function neurologicExamHTML(c){
   const x=c.initialExam||{};
   return `<section class="neurologic-exam-card">
-    <div class="exam-head"><div><div class="eyebrow">Neurologic examination</div><h2>Initial bedside examination</h2></div>${S.modelFramed?'<button class="primary compact" id="examFurtherTop">Examine further</button>':''}</div>
+    <div class="exam-head"><div><div class="eyebrow">Neurologic examination</div><h2>Complete bedside examination</h2></div>${S.modelFramed?'<button class="primary compact" id="examFurtherTop">Targeted maneuvers</button>':''}</div>
     <div class="exam-grid">
       ${examSection('Mental status',x.mental)}
       ${examSection('Cranial nerves',x.cranial)}
@@ -256,7 +256,7 @@ function workingModelHTML(r){
 
 function openSheet(kind){
   if(kind==="ask") return openActionSheet("Ask",[["history","History and collateral"]]);
-  if(kind==="examine") return openActionSheet("Examine further",[["bedside","Targeted bedside examination"]]);
+  if(kind==="examine") return openActionSheet("Targeted maneuvers",[["bedside","Syndrome-specific additions to the complete examination"]]);
   if(kind==="test") return openActionSheet("Test",[["imaging","Imaging"],["other","Other tests / resources"]]);
 }
 function showSheet(eyebrow,title,html){
@@ -288,7 +288,8 @@ function doAction(id){
   if(id==="reexam") return doReexam();
   const c=getCase(), a=findAction(id); if(!c||!a||S.actionsTaken.includes(id)) return;
   const q=c.activeQuestions&&c.activeQuestions[id];
-  if(q) return openQuestionBeforeAction(id,q);
+  const isDiagnosticTest = ACTIONS.imaging.some(x=>x.id===id) || ACTIONS.other.some(x=>x.id===id);
+  if(q && isDiagnosticTest) return openQuestionBeforeAction(id,q);
   revealAction(id);
 }
 function revealAction(id){

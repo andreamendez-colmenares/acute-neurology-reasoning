@@ -18,9 +18,11 @@ Cases may involve stroke, seizure, myelopathy, delirium, vestibular syndromes, n
 
 Important tests may ask:
 
-**What question are you trying to answer?**
+**Why are you ordering this test?**
 
-The goal is to encourage targeted data gathering and active updating of the working model rather than clicking through a checklist.
+The neurologic examination is completed in every case. Syndrome-specific maneuvers are then added when they sharpen localization or severity—for example, a more detailed sensory/reflex examination in bilateral leg weakness or fatigability and neck/bulbar testing when neuromuscular-junction disease is plausible.
+
+The explicit “why” prompt is reserved for diagnostic tests. Its purpose is to make the learner state what uncertainty the test can actually resolve before seeing the result. The goal is purposeful neurologic reasoning rather than checklist completion.
 
 Stroke cases use **TNK** consistently to mirror Duke acute-stroke practice. The cases incorporate high-yield changes from the 2026 AHA/ASA acute ischemic stroke guideline, including disability rather than NIHSS alone, expanded EVT eligibility, extended-window imaging selection, DAPT for appropriate nondisabling minor stroke, and current blood-pressure targets.
 
@@ -37,3 +39,6 @@ This tool is for education only and is not a clinical decision-support system. I
 ## Run locally
 
 Open `index.html` in a browser. The project uses plain HTML, CSS, and JavaScript and can be deployed with GitHub Pages.
+
+
+Clinical tests are presented as tools for answering specific neurologic questions. For example, perfusion imaging is framed as an adjunct that may add tissue-status information in selected stroke cases rather than as either a mandatory step or a test to dismiss.
