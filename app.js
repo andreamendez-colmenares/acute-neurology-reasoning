@@ -1,6 +1,6 @@
 "use strict";
 
-const KEY = "acute_neurology_reasoning_v17";
+const KEY = "acute_neurology_reasoning_v19";
 const ONBOARD_KEY = "acute_neurology_reasoning_onboarded";
 const THEMES = {
   all:"All presentations",
@@ -11,20 +11,22 @@ const THEMES = {
   seizure:"Seizure-like activity",
   ams:"Altered mental status",
   headache:"Headache / vomiting",
-  legs:"Bilateral leg weakness"
+  legs:"Bilateral leg weakness",
+  bulbar:"Bulbar / fatigable weakness",
+  cancer_ams:"Cancer / altered mental status"
 };
 const CASE_THEMES = {
   c1:["focal"], c2:["focal","found"], c3:["focal","found"], c4:["focal","found"],
   c5:["focal"], c6:["dizzy"], c7:["hand","focal"], c8:["focal"],
   c9:["headache","focal"], c10:["seizure","ams","focal"],
-  c11:["legs"], c12:["ams"]
+  c11:["legs"], c12:["ams"], c13:["bulbar"], c14:["ams","cancer_ams","seizure"]
 };
 
 function freshState(){
   return {
     view:"home", caseId:null, startedAt:0, elapsed:0, timerRunning:false,
     tempo:null, localization:null, syndrome:null, hypothesisLevels:{}, reasoningUpdates:[], modelFramed:false,
-    lastModelUpdateDataCount:0, reexamCount:0, actionsTaken:[], revealed:{}, pathwayChoice:null, finalDiagnosis:"", timeline:[], history:[], theme:"all"
+    lastModelUpdateDataCount:0, reexamCount:0, actionsTaken:[], revealed:{}, pathwayChoice:null, finalDiagnosis:"", timeline:[], history:[], theme:"all", questionAnswers:{}
   };
 }
 let S = freshState();
@@ -98,7 +100,9 @@ function caseName(c){
     c9:"Sudden severe headache, vomiting, and weakness",
     c10:"Weakness after a witnessed convulsion",
     c11:"New bilateral leg weakness after critical illness",
-    c12:"Fluctuating confusion in the hospital"
+    c12:"Fluctuating confusion in the hospital",
+    c13:"Progressive fatigue and slurred speech",
+    c14:"Increasing confusion in a patient with metastatic cancer"
   };
   return names[c.id]||`Case ${c.n}`;
 }
@@ -162,6 +166,7 @@ function renderCase(app,c){
       <div class="context-line"><span>Context</span><p>${htmlSafe(c.context||"")}</p></div>
       <div class="presentation-line"><span>Presentation</span><p>${htmlSafe(c.presentation||c.arrival)}</p></div>
     </div>
+    ${S.modelFramed && c.clinicalQuestion?`<section class="clinical-question-card"><div class="eyebrow">Clinical question</div><p>${htmlSafe(c.clinicalQuestion)}</p></section>`:''}
     ${nextStepHTML()}
     ${S.modelFramed?`<section class="case-body">
       <div class="timeline-panel">
@@ -215,15 +220,39 @@ function openActionSheet(title,sections){
 }
 function actionButtonHTML(a,c){
   const used=!a.repeatable&&S.actionsTaken.includes(a.id); const available=Object.prototype.hasOwnProperty.call(c.r,a.id) || a.id==="reexam";
-  return `<button class="action-card ${used?'used':''}" data-action="${a.id}" ${used||!available?'disabled':''}>${a.label}${used?'<small>Already reviewed</small>':(!available?'<small>Not available in this case</small>':'')}</button>`;
+  const purpose=(c.actionPurpose&&c.actionPurpose[a.id]) || ACTION_PURPOSE[a.id] || "";
+  return `<button class="action-card ${used?'used':''}" data-action="${a.id}" ${used||!available?'disabled':''}><b>${a.label}</b>${used?'<small>Already reviewed</small>':(!available?'<small>Not available in this case</small>':(purpose?`<small>${htmlSafe(purpose)}</small>`:''))}</button>`;
 }
 function doAction(id){
   if(id==="reexam") return doReexam();
   const c=getCase(), a=findAction(id); if(!c||!a||S.actionsTaken.includes(id)) return;
+  const q=c.activeQuestions&&c.activeQuestions[id];
+  if(q) return openQuestionBeforeAction(id,q);
+  revealAction(id);
+}
+function revealAction(id){
+  const c=getCase(), a=findAction(id); if(!c||!a||S.actionsTaken.includes(id)) return;
   const text=c.r[id]||"No additional information is available.";
   S.actionsTaken.push(id); S.revealed[id]=text; S.timeline.push({time:stamp(),type:actionType(id),title:a.label,text:text}); save(); closeSheet(); render();
 }
-function actionType(id){ if(ACTIONS.history.some(a=>a.id===id))return"History"; if(ACTIONS.imaging.some(a=>a.id===id))return"Imaging"; if(ACTIONS.other.some(a=>a.id===id))return id==="eeg"?"EEG":"Other"; return"Examination"; }
+function openQuestionBeforeAction(id,q){
+  const a=findAction(id);
+  showSheet("Before you reveal the result",q.prompt||"What question are you trying to answer?",`
+    <div class="active-question-intro">Choose the reason that best matches your current uncertainty. This is not scored.</div>
+    <div class="choice-list active-question-options">${(q.options||[]).map((opt,i)=>`<button type="button" class="choice-option active-question-option" data-qopt="${i}"><b>${htmlSafe(opt.label||opt)}</b>${opt.desc?`<span>${htmlSafe(opt.desc)}</span>`:''}</button>`).join('')}</div>
+    <div id="questionFeedback"></div>
+    <div class="sheet-actions"><button class="secondary" id="cancelQuestion">Back</button><button class="primary" id="revealQuestionResult" disabled>Reveal ${htmlSafe(a?a.label:'result')}</button></div>`);
+  $("#cancelQuestion").onclick=()=>{closeSheet();openSheet("gather");};
+  $("#sheetBody").querySelectorAll("[data-qopt]").forEach(b=>b.onclick=()=>{
+    $("#sheetBody").querySelectorAll("[data-qopt]").forEach(x=>x.classList.remove("selected")); b.classList.add("selected");
+    const idx=Number(b.dataset.qopt); const opt=(q.options||[])[idx]||{}; S.questionAnswers[`${getCase().id}:${id}`]=idx; save();
+    const feedback=q.feedback || (opt.correct?"That question matches what this test can help resolve.":"Keep the purpose of the test tied to the uncertainty in your working model.");
+    $("#questionFeedback").innerHTML=`<div class="active-feedback"><div class="eyebrow">Why this test?</div><p>${feedback}</p></div>`;
+    $("#revealQuestionResult").disabled=false;
+  });
+  $("#revealQuestionResult").onclick=()=>revealAction(id);
+}
+function actionType(id){ if(ACTIONS.history.some(a=>a.id===id))return"History"; if(ACTIONS.imaging.some(a=>a.id===id))return"Imaging"; if(ACTIONS.other.some(a=>a.id===id))return (id==="eeg"||id==="ceeg")?"EEG":"Other"; return"Examination"; }
 function doReexam(){
   const c=getCase(), r=reasoningFor(c); if(!c)return;
   const idx=Math.min(S.reexamCount,Math.max(0,r.reexam.length-1)); const text=r.reexam[idx]||"No major interval change on repeat examination.";
@@ -291,8 +320,8 @@ function openFinalizeSheet(){
   const dxOptions=[...r.hypotheses,"Diagnosis remains uncertain / more than one process may contribute"];
   const management=(c.managementOptions||PATHWAYS.map(x=>x.id)).map(id=>PATHWAYS.find(x=>x.id===id)).filter(Boolean);
   showSheet("","Finalize assessment",`
-    <div class="sheet-section"><h3>Working interpretation</h3><div class="choice-list">${dxOptions.map((x,i)=>radioHTML("finalDiagnosis",`dx-${i}`,x,"",S.finalDiagnosis===x?`dx-${i}`:null)).join('')}</div></div>
-    <div class="sheet-section"><h3>Management</h3><div class="choice-list">${management.map(p=>radioHTML("pathway",p.id,p.title,p.desc,S.pathwayChoice)).join('')}</div></div>
+    <div class="sheet-section"><h3>${htmlSafe(c.finalInterpretationLabel||"Working interpretation")}</h3>${c.finalInterpretationHelp?`<p class="section-help">${htmlSafe(c.finalInterpretationHelp)}</p>`:''}<div class="choice-list">${dxOptions.map((x,i)=>radioHTML("finalDiagnosis",`dx-${i}`,x,"",S.finalDiagnosis===x?`dx-${i}`:null)).join('')}</div></div>
+    <div class="sheet-section"><h3>${htmlSafe(c.finalManagementLabel||"Management")}</h3>${c.finalManagementHelp?`<p class="section-help">${htmlSafe(c.finalManagementHelp)}</p>`:''}<div class="choice-list">${management.map(p=>radioHTML("pathway",p.id,p.title,p.desc,S.pathwayChoice)).join('')}</div></div>
     <div class="sheet-actions"><button class="secondary" id="returnCase">Return to case</button><button class="primary" id="finishCase">Finish case</button></div>`);
   $("#returnCase").onclick=closeSheet;
   $("#finishCase").onclick=()=>{
@@ -332,7 +361,7 @@ function renderDebrief(app,c){
     ${c.competing?`<div class="debrief-section"><h2>Competing explanations</h2><div class="competing-list">${c.competing.map(x=>`<div><b>${htmlSafe(x.label)}</b><p>${x.text}</p></div>`).join('')}</div></div>`:''}
     ${c.whatChanged?`<div class="debrief-section"><h2>What changed the model</h2><p>${c.whatChanged}</p></div>`:''}
     ${c.uncertainty?`<div class="debrief-section"><h2>What remains uncertain</h2><p>${c.uncertainty}</p></div>`:''}
-    <div class="debrief-section"><h2>Key findings</h2><ul class="plain-list">${c.teach.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+    <div class="debrief-section"><h2>${htmlSafe(c.debriefDecisionTitle||"Case-specific clinical reasoning")}</h2>${c.clinicalQuestion?`<div class="debrief-question"><span>Clinical question</span><b>${htmlSafe(c.clinicalQuestion)}</b></div>`:''}<ul class="plain-list">${c.teach.map(t=>`<li>${t}</li>`).join('')}</ul></div>
     <div class="debrief-section"><h2>Clinical reasoning point</h2><p>${c.trap}</p></div>
     <div class="debrief-section"><h2>Evidence</h2><p>${(c.citations||[]).map(htmlSafe).join(' · ')||'No references listed.'}</p></div>
     <div class="debrief-actions"><button class="primary" id="another">Another case</button><button class="secondary" id="homeDebrief">Home</button></div></section>`;

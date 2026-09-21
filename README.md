@@ -40,3 +40,19 @@ Open `index.html` in a browser, or serve the repository with any static web serv
 - `styles.css` — responsive and mobile-first layout
 - `app.js` — application state and interaction logic
 - `cases.js` — case content and teaching data
+
+## Learning design in v19
+
+The case engine deliberately separates two layers:
+
+1. **Universal neurologic reasoning:** Understand → Frame → Gather → Update → Finalize. Every case asks the learner to reason through pace, localization, syndrome, differential diagnosis, and targeted data acquisition.
+2. **Case-specific clinical decisions:** after the learner frames the syndrome, the case surfaces the clinical question that actually matters in that scenario. Examples include reperfusion, disability despite low NIHSS, the role of advanced imaging, thrombectomy selection, interpretation of bedside vestibular findings, competing localizations in bilateral leg weakness, and deciding when additional neurologic testing is justified in altered mental status.
+
+Important tests may use an active-learning prompt: **“What question are you trying to answer?”** The learner predicts what the test is meant to resolve before the result is revealed. This is not scored. The goal is to practice choosing tests because they reduce a specific uncertainty rather than clicking through a generic diagnostic menu.
+
+In the bilateral-leg-weakness case, this distinction is explicit: MRI primarily tests anatomic hypotheses, EMG/NCS tests a peripheral localization/physiology hypothesis, and CSF testing addresses inflammatory or infectious mechanism. No single abnormal result is treated as self-interpreting.
+
+
+## New consult frameworks in v19
+
+Two cases extend the same reasoning architecture beyond stroke, myelopathy, and delirium. **Progressive fatigue and slurred speech** asks the learner to distinguish nonspecific fatigue from objective neuromuscular fatigability through a deliberately provocative examination before using serology and electrodiagnostics. **Increasing confusion in a patient with metastatic cancer** asks whether a dramatic structural abnormality fully explains the phenotype or whether fluctuating awareness should trigger an EEG question; the learner then decides when continuous EEG adds information beyond a short recording. Both cases use the active-learning prompt **"What question are you trying to answer?"** before key tests or examination maneuvers.

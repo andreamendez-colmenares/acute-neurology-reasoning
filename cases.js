@@ -43,6 +43,8 @@ const SYNDROMES = [
   {id:'hemorrhage', title:'Acute focal syndrome with headache / vomiting / impaired arousal', desc:'A focal neurologic syndrome accompanied by severe headache, vomiting, or reduced level of consciousness.'},
   {id:'paraparesis_mixed', title:'Bilateral lower-extremity weakness with mixed localizing features', desc:'A bilateral leg motor syndrome in which brain, cord, roots, or peripheral nervous system remain plausible.'},
   {id:'acute_confusional', title:'Acute fluctuating cognitive-attentional syndrome', desc:'Acute change in attention, arousal, and cognition with fluctuation and no stable focal syndrome.'},
+  {id:'fatigable_bulbar', title:'Fluctuating fatigable bulbar motor syndrome', desc:'Speech, chewing, swallowing, facial, ocular, or proximal motor function worsens with sustained activity and improves with rest, without a sensory syndrome.'},
+  {id:'structural_fluctuating_ams', title:'Fluctuating cerebral dysfunction in structural brain disease', desc:'Impaired awareness or cognition fluctuates in a patient with focal structural cerebral disease, leaving both diffuse and focal cortical mechanisms plausible.'},
   {id:'mimic', title:'Diffuse, nonfocal, or uncertain syndrome', desc:'The observations do not yet form a coherent focal syndrome, or the localization remains uncertain.'}
 ];
 
@@ -75,6 +77,8 @@ const ACTIONS = {
     {id:'nihss', label:'Perform NIHSS'},
     {id:'focused_exam', label:'Focused neurologic examination'},
     {id:'attention_exam', label:'Assess attention and arousal'},
+    {id:'fatigability_exam', label:'Test fatigability at the bedside'},
+    {id:'respiratory_bulbar_exam', label:'Assess bulbar and respiratory function'},
     {id:'reexam', label:'Repeat neurologic examination', repeatable:true}
   ],
   history:[
@@ -98,11 +102,45 @@ const ACTIONS = {
     {id:'eeg', label:'Order rapid EEG'},
     {id:'emg', label:'Plan EMG / nerve conduction studies'},
     {id:'lp', label:'Consider CSF studies'},
+    {id:'achr_musk', label:'Order MG antibody testing'},
+    {id:'rns', label:'Order repetitive nerve stimulation'},
+    {id:'ceeg', label:'Start continuous EEG'},
     {id:'pharmacy', label:'Call pharmacy'}
   ]
 };
 
 // Map each action to which K/U/C fields it updates when revealed
+const ACTION_PURPOSE = {
+  glucose:'Exclude a rapidly reversible metabolic mimic.',
+  bp:'Determine whether blood pressure changes immediate treatment or helps explain the syndrome.',
+  nihss:'Describe the current focal deficit; do not let the score substitute for localization.',
+  focused_exam:'Test the localization suggested by the presentation.',
+  attention_exam:'Define whether impaired attention/arousal is actually present.',
+  fatigability_exam:'Ask whether sustained activation converts a vague symptom into objective fatigable weakness.',
+  respiratory_bulbar_exam:'Determine whether bulbar or respiratory weakness changes the urgency of the neuromuscular problem.',
+  reexam:'Use change over time as diagnostic information.',
+  collateral:'Clarify baseline, timing, trajectory, and relevant context.',
+  ems_timeline:'Separate last-known-well, discovery time, and observed onset.',
+  meds:'Identify medication exposures that change diagnosis or treatment.',
+  baseline:'Understand pre-illness function and what the current deficit means for this patient.',
+  seizure_hx:'Assess whether seizure is a plausible competing explanation.',
+  osh:'Recover prior neurologic information that could change the current model.',
+  ncct:'Exclude hemorrhage and look for structural clues that change acute management.',
+  cta:'Ask whether a vascular lesion explains the syndrome and changes reperfusion options.',
+  ctp:'Ask whether tissue information would change an extended-window reperfusion decision.',
+  mri:'Look for a structural correlate when MRI can resolve a remaining diagnostic question.',
+  mri_tspine:'Ask whether a thoracic cord lesion matches the bedside localization and excludes compression.',
+  mri_lspine:'Evaluate conus, cauda equina, or lower structural disease when the phenotype remains lower than the known lesion.',
+  labs:'Look for systemic or metabolic contributors that plausibly explain the phenotype.',
+  eeg:'Ask whether persistent or episodic impaired awareness could be ictal.',
+  emg:'Characterize peripheral nervous system involvement when central and peripheral localizations remain in competition.',
+  lp:'Ask whether CSF can clarify an inflammatory or infectious mechanism.',
+  achr_musk:'Ask whether serology supports an autoimmune neuromuscular-junction disorder.',
+  rns:'Ask whether there is physiologic evidence of impaired neuromuscular transmission.',
+  ceeg:'Ask whether ongoing electrographic seizures are contributing to fluctuating or persistently impaired awareness.',
+  pharmacy:'Clarify medication exposure when it changes treatment eligibility.'
+};
+
 const ACTION_UPDATES = {
   glucose:['glucose'], bp:['bp'], nihss:['nihss','identity'], reexam:['nihss'],
   collateral:['collateral','lkw','baseline','anticoag','seizure','identity'],
@@ -120,7 +158,9 @@ const PATHWAYS = [
   {id:'hemorrhage', title:'Hemorrhage pathway', desc:'Call attending. CT head shows hemorrhage. Stop reperfusion thinking. Lower SBP toward 130 to under 140 smoothly, avoid overshoot below 130. Reverse anticoagulation if applicable. Page NSGY. NICU disposition.'},
   {id:'mimic_unclear', title:'Mimic or unclear', desc:'Call attending. Stroke is not the working diagnosis or it is unclear. Treat the trigger when there is one and continue targeted evaluation when the syndrome remains unresolved.'},
   {id:'spinal_eval', title:'Continue spinal / peripheral localization', desc:'Use serial examination and targeted testing to distinguish cord, conus/roots, peripheral nerve, and multifocal processes; escalate urgently if a compressive syndrome remains plausible.'},
-  {id:'delirium_eval', title:'Treat precipitants and delirium care', desc:'Address likely systemic precipitants and supportive delirium measures; add neurologic testing when focal findings, persistent unexplained impairment, or the trajectory make another process plausible.'}
+  {id:'delirium_eval', title:'Treat precipitants and delirium care', desc:'Address likely systemic precipitants and supportive delirium measures; add neurologic testing when focal findings, persistent unexplained impairment, or the trajectory make another process plausible.'},
+  {id:'nmj_eval', title:'Confirm NMJ dysfunction and assess severity', desc:'Use the clinical pattern, targeted serology/electrophysiology, and repeated bulbar/respiratory assessment to confirm a neuromuscular-junction disorder and identify impending respiratory or airway risk.'},
+  {id:'ncse_eval', title:'Treat electrographic seizures and the structural trigger', desc:'Address ongoing electrographic seizures while also treating the underlying structural cerebral process and edema; use continuous EEG to confirm control and detect recurrence.'}
 ];
 
 // ============================================================
@@ -174,7 +214,7 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','collateral'],
- syndromeStory:'This patient suddenly stopped talking, kept staring to the left, and lost movement of the right arm and leg. That bedside pattern is a left dominant hemispheric cortical syndrome, classic for a left middle cerebral artery (M1) occlusion. On the very first non-contrast CT head, the L M1 may already show a <b>hyperdense MCA sign</b>, a bright linear thrombus visible before any contrast is given (the bright structure in the L Sylvian fissure on the Radiopaedia example). Recognizing it can drive immediate IV tenecteplase even before CTA confirms the occlusion. CTA then confirmed the L M1 occlusion, matching the syndrome. Within 90 minutes of onset, this is a reperfusion candidate: IV tenecteplase plus paging IR to discuss MT in parallel.',
+ syndromeStory:'This patient suddenly stopped talking, kept staring to the left, and lost movement of the right arm and leg. That bedside pattern is a left dominant hemispheric cortical syndrome, classic for a left middle cerebral artery (M1) occlusion. On the very first non-contrast CT head, the L M1 may already show a <b>hyperdense MCA sign</b>, a bright linear thrombus visible before any contrast is given (the bright structure in the L Sylvian fissure on the Radiopaedia example). Recognizing it can strengthen the working diagnosis while IV thrombolysis eligibility is assessed; vascular imaging should proceed in parallel and should not unnecessarily delay otherwise indicated thrombolysis. CTA then confirmed the L M1 occlusion, matching the syndrome. Within 90 minutes of onset, this is a reperfusion candidate: IV tenecteplase plus paging IR to discuss MT in parallel.',
  teach:[
    'Recognize dominant hemispheric cortical dysfunction at the bedside: aphasia, forced gaze deviation toward the lesion, and dense contralateral face-arm-leg weakness point to a proximal anterior-circulation LVO until proven otherwise.',
    'Inspect the noncontrast CT before CTA finishes. Compare both MCAs and both Sylvian fissures; a hyperdense MCA sign can support immediate reperfusion thinking even before vascular imaging returns.',
@@ -548,8 +588,8 @@ const CASES = [
   mri_tspine:'MRI thoracic spine shows a focal intramedullary T2 signal abnormality. There is no major compressive lesion. The appearance is not specific enough to establish whether this is acute, chronic, inflammatory, or vascular, and the examination does not cleanly map to that level.',
   mri_lspine:'MRI lumbar spine/conus shows no large compressive cauda equina lesion. Degenerative changes are present but do not provide a single structural explanation for the severity of weakness.',
   labs:'CK is not markedly elevated. Electrolyte abnormalities do not explain the degree of weakness. Systemic inflammatory and infectious data remain abnormal in the setting of severe critical illness.',
-  emg:'EMG/NCS would be more informative after sufficient time has elapsed and if the peripheral localization remains clinically important; it is not an immediate bedside answer to the acute weakness.',
-  lp:'CSF studies could become relevant if inflammatory or infectious myelopathy remains plausible after imaging and the clinical trajectory, but this is not the first step while localization is still unsettled.',
+  emg:'EMG/NCS can test the peripheral branch of the localization: polyneuropathy, polyradiculopathy, focal root/plexus disease, myopathy, or a mixed process. It can distinguish axonal from demyelinating physiology and may show whether the pre-hospital distal symptoms represent a meaningful concurrent peripheral process. In very acute weakness, some abnormalities may not yet be fully expressed, so a nondiagnostic early study would not by itself close the peripheral hypothesis.',
+  lp:'CSF would address etiology more than anatomic localization. Cell count, protein, glucose, IgG index/oligoclonal bands, and targeted infectious studies could support or weaken inflammatory or infectious myelopathy/myeloradiculitis. A bland CSF would not prove a vascular process, and an inflammatory CSF would still need to be reconciled with the tempo, MRI pattern, and examination.',
   eeg:'No episodic altered awareness or motor activity suggests an ictal explanation for the isolated leg weakness.'
  },
  pathway:'spinal_eval',
@@ -567,7 +607,9 @@ const CASES = [
    'Start with the time course: an acute deterioration can occur on top of a subacute neurologic process, and both time scales may matter.',
    'Localize before assigning causality to MRI abnormalities. A lesion can be real and still be incompletely explanatory.',
    'In acute severe myelopathy, reflexes may initially be reduced, so a lower-motor-neuron-appearing examination does not by itself exclude spinal cord disease.',
-   'When the examination and available imaging conflict, targeted imaging of the remaining plausible neural levels and serial examination are more useful than forcing an early label.'
+   'When the examination and available imaging conflict, targeted imaging of the remaining plausible neural levels and serial examination are more useful than forcing an early label.',
+   'Use EMG/NCS when the unresolved question is peripheral localization or physiology: it can characterize neuropathic, radicular, plexus, or myopathic involvement, but timing matters and an early nondiagnostic study does not erase a clinically plausible peripheral process.',
+   'Use LP when the unresolved question is mechanism rather than level: CSF can support inflammatory or infectious disease, but it must be interpreted with the tempo, examination, and MRI rather than treated as a stand-alone answer.'
  ],
  citations:['WFNS Spine Committee recommendations on cauda equina/conus syndromes (2024)','Tan & Manohararaj, isolated conus medullaris infarction (2021)'],
  trap:'Prematurely deciding that whichever abnormal MRI was found first must explain the weakness.'
@@ -614,8 +656,311 @@ const CASES = [
  citations:['Oh et al., JAMA review of delirium in older persons (2017)','Inouye et al., delirium in elderly people (Lancet 2013)','Ahmed et al., delirium risk factors meta-analysis (Age and Ageing 2014)'],
  trap:'Assuming that every acute change in a patient with vascular disease requires a hidden focal lesion—or, conversely, declaring delirium without first establishing an acute fluctuating attentional syndrome and checking for focal findings.'
 }
+,
+{id:'c13', n:13,
+ arrival:'62-year-old woman presents with several days of worsening fatigue and intermittent slurred speech. Her family says she sounds normal in the morning but becomes harder to understand after long conversations and near the end of meals.',
+ activation:'Progressive fatigue and intermittent dysarthria',
+ context:'Previously independent adult without a known neuromuscular diagnosis. No recent stroke history. Family has noticed that speech and chewing seem worse later in the day, but the patient mainly describes the problem as "fatigue."',
+ presentation:'She reports generalized tiredness and intermittent slurred speech. Brief strength testing is initially close to normal. There is no numbness, hemisensory complaint, fixed diplopia, or persistent unilateral weakness.',
+ unknowns:['baseline','collateral','nihss','mri'],
+ syndrome:'fatigable_bulbar',
+ managementOptions:['nmj_eval','mimic_unclear'],
+ r:{
+  collateral:'Her spouse reports that her voice becomes quieter and more nasal after prolonged talking. She sometimes pauses halfway through dinner because chewing feels harder, then improves after resting. The pattern has been reproducible over several days rather than steadily progressive hour by hour.',
+  baseline:'She was fully independent and had no baseline speech, swallowing, or mobility limitation.',
+  meds:'No recent sedative escalation or new dopamine-blocking medication. Medication review does not provide a clear toxic explanation for the fluctuating bulbar symptoms.',
+  focused_exam:'Mental status and language are normal. Sensation is intact. Reflexes are preserved. There is no limb ataxia. On brief testing, limb strength is near full. Facial activation is mildly weak but symmetric. Speech is mildly dysarthric without aphasia.',
+  fatigability_exam:'After sustained upgaze, mild bilateral ptosis becomes more apparent. Repeated eyelid closure and prolonged smiling reveal increasing facial weakness. During continuous counting, speech becomes progressively more nasal and imprecise, then partially improves after a short rest. Repeated shoulder abduction produces mild proximal fatigability.',
+  respiratory_bulbar_exam:'She can manage secretions and remains able to speak in full sentences, but chewing and speech fatigue are objective. Bedside respiratory assessment does not show overt respiratory failure. Because bulbar weakness can evolve, respiratory and swallowing function require serial reassessment rather than a one-time reassuring examination.',
+  nihss:'There is no coherent focal NIHSS syndrome. Dysarthria is present, but language, visual fields, gaze, sensation, and limb strength are otherwise nonfocal on brief testing.',
+  mri:'Brain MRI shows no acute infarct or brainstem lesion that explains the fluctuating bulbar pattern.',
+  labs:'Routine metabolic studies do not explain the symptoms; CK is not markedly elevated.',
+  achr_musk:'Serologic testing supports autoimmune myasthenia gravis. Antibody status helps confirm and phenotype the disease, but the fluctuating fatigable examination remains central to the diagnosis and severity assessment.',
+  rns:'Repetitive nerve stimulation demonstrates a reproducible decrement consistent with impaired neuromuscular transmission. The study supports a postsynaptic neuromuscular-junction disorder when interpreted with the clinical pattern.',
+  eeg:'There is no episodic impaired awareness or stereotyped cortical event to make EEG a useful first test.'
+ },
+ pathway:'nmj_eval',
+ ideal:['collateral','focused_exam','fatigability_exam','respiratory_bulbar_exam','achr_musk','rns'],
+ syndromeStory:'The initial complaint of "fatigue" and intermittent dysarthria is nonspecific. What changes the localization is demonstrating objective, activity-dependent weakness: ptosis appears with sustained upgaze, facial and bulbar function worsen with repetition, and speech deteriorates during prolonged counting before improving after rest. Normal sensation and preserved reflexes further support a neuromuscular-junction localization. Serology and repetitive nerve stimulation then confirm the physiologic model rather than creating it.',
+ competing:[
+  {label:'Neuromuscular-junction disorder', text:'Fluctuation, reproducible fatigability, ocular/facial/bulbar involvement, preserved sensation, and supportive electrophysiology make this the best current localization.'},
+  {label:'Brainstem or cortical lesion', text:'Dysarthria can be central, but there is no fixed crossed, long-tract, language, sensory, or imaging correlate, and the deficit worsens with sustained activation rather than remaining fixed.'},
+  {label:'Generalized fatigue / systemic illness', text:'Subjective fatigue is common and nonspecific, but it does not explain the reproducible activity-dependent focal motor deterioration seen on examination.'}
+ ],
+ whatChanged:'The decisive information is not the word "fatigue"; it is the conversion of a vague complaint into objective fatigable weakness during a deliberately provocative examination. Serology and RNS then test the neuromuscular-junction hypothesis.',
+ uncertainty:'The diagnosis may be supported before every confirmatory test returns, but the immediate clinical uncertainty is severity: bulbar symptoms require repeated assessment for swallowing and respiratory deterioration even when the first respiratory examination is reassuring.',
+ teach:[
+   'Separate generalized fatigue from neuromuscular fatigability. In MG, sustained or repeated activation can reveal weakness that is absent on a brief one-time strength examination.',
+   'Dysarthria is a symptom, not a localization. Language, cranial nerves, sensory findings, reflexes, fluctuation, and provocative testing determine whether the syndrome is central, neuromuscular, or systemic.',
+   'The bedside examination should create a testable hypothesis before antibody testing or electrophysiology is ordered.',
+   'AChR/MuSK serology and electrodiagnostic testing can confirm MG, but a negative single test does not substitute for reassessing a convincing clinical phenotype.',
+   'Bulbar weakness changes urgency because swallowing and respiratory function can worsen even when limb strength and a single respiratory assessment look relatively preserved.'
+ ],
+ citations:['Juel, Autoimmune Myasthenia Gravis, Continuum (2025)','Guidon et al., Myasthenia Gravis Core Exam (2021)','International consensus guidance for management of myasthenia gravis','Tankisi et al., electrodiagnostic criteria for neuromuscular transmission disorders (2025)'],
+ trap:'Treating "fatigue" as either diagnostic of myasthenia or too nonspecific to matter. The useful step is to test whether the patient has objective fatigable weakness and then localize the motor syndrome.'
+},
+
+{id:'c14', n:14,
+ arrival:'65-year-old man with metastatic lung cancer and multiple known brain metastases becomes progressively less interactive over several hours. Imaging already shows extensive vasogenic edema around several supratentorial lesions. No generalized convulsion has been witnessed.',
+ activation:'Increasing confusion and reduced responsiveness in a patient with brain metastases',
+ context:'Hospitalized patient with multiple supratentorial brain metastases and substantial surrounding vasogenic edema. He has received several medications that could affect alertness and has significant structural cerebral disease. Nursing has noticed brief periods of staring and inconsistent command following.',
+ presentation:'Over several hours he becomes less conversational, intermittently mute, and variably follows commands. There is no sustained generalized convulsion. The examination seems to fluctuate more than expected from a fixed structural deficit.',
+ unknowns:['baseline','collateral','glucose','bp','nihss','ncct','mri'],
+ syndrome:'structural_fluctuating_ams',
+ managementOptions:['ncse_eval','delirium_eval','mimic_unclear'],
+ r:{
+  glucose:'Glucose is normal.',
+  bp:'Blood pressure is not sufficiently abnormal to explain the change in awareness.',
+  collateral:'Family and nursing confirm that he was conversant earlier in the day. Since then he has alternated between following commands and staring without responding. No prolonged tonic-clonic event has been seen.',
+  meds:'Medication review identifies sedating exposures that could contribute to reduced arousal, but the episodic staring and abrupt within-hour fluctuations are not fully explained by the medication timeline.',
+  baseline:'Before this deterioration he was conversational and followed commands despite known metastatic disease.',
+  attention_exam:'Arousal fluctuates. At times he tracks and follows a one-step command; minutes later he stares and fails to respond despite appearing awake. The pattern is not simply sustained somnolence.',
+  focused_exam:'There is no new dense hemiplegia. During one episode he becomes briefly mute with subtle right facial twitching and a leftward gaze tendency, then partially recovers. These findings are transient and easy to miss.',
+  nihss:'The score fluctuates because language and command-following vary over minutes. There is no stable new hemispheric syndrome that explains the entire course.',
+  ncct:'Repeat CT shows the known metastatic lesions and extensive surrounding vasogenic edema without a new large hemorrhage or major new mass-effect change that clearly accounts for the abrupt fluctuations.',
+  mri:'MRI confirms multiple supratentorial metastases with substantial vasogenic edema. There is no new large territorial infarct. The structural disease is clinically important but does not by itself explain why awareness and language fluctuate so abruptly over minutes.',
+  labs:'Routine metabolic evaluation shows no single severe derangement that accounts for the episodic pattern.',
+  eeg:'A short EEG captures frequent lateralized epileptiform discharges and brief focal electrographic seizures arising from cortex near the dominant metastatic burden. Because the abnormality is intermittent and the clinical state continues to fluctuate, a short recording does not fully define seizure burden.',
+  ceeg:'Continuous EEG shows recurrent focal electrographic seizures with little or no consistent motor correlate, accumulating into nonconvulsive status epilepticus. Clinical responsiveness improves as the electrographic seizure burden is controlled, while the underlying edema and tumor burden remain important concurrent contributors.'
+ },
+ pathway:'ncse_eval',
+ ideal:['collateral','attention_exam','focused_exam','mri','eeg','ceeg'],
+ syndromeStory:'The patient has an obvious structural explanation for neurologic dysfunction—multiple metastases with extensive vasogenic edema—but the abrupt within-hour fluctuation, transient mutism, staring, and subtle focal motor/ocular signs are not fully explained by a fixed edema burden. EEG tests the missing physiologic question. A short study reveals an ictal signal, and continuous EEG demonstrates recurrent largely subclinical focal seizures meeting criteria for nonconvulsive status. The final model is not "edema versus seizure"; structural disease and edema provide both direct dysfunction and an epileptogenic substrate.',
+ competing:[
+  {label:'Nonconvulsive seizures / status', text:'Fluctuating awareness, transient focal features, epileptiform activity, and recurrent electrographic seizures support an ongoing ictal contribution.'},
+  {label:'Vasogenic edema / tumor-related cerebral dysfunction', text:'The metastatic burden and edema remain clinically important and may directly impair cognition while also increasing cortical irritability. They are not displaced from the model by the EEG result.'},
+  {label:'Medication or toxic-metabolic encephalopathy', text:'These can contribute to reduced arousal, but they fit the abrupt stereotyped fluctuations and focal ictal findings less well.'}
+ ],
+ whatChanged:'The key update is recognizing that a striking MRI abnormality may be a substrate rather than a complete explanation. The clinical fluctuation creates an ictal question; EEG answers it, and continuous monitoring defines the burden and response over time.',
+ uncertainty:'Even after NCSE is established, improvement may be incomplete because edema, tumor progression, medication effects, and systemic illness can coexist. The neurologic model should remain multifactorial rather than expecting seizure treatment to normalize the entire examination.',
+ teach:[
+   'In patients with structural brain disease, do not ask only whether imaging is abnormal; ask whether the abnormality adequately explains the phenotype and its time course.',
+   'Nonconvulsive status often presents as altered mental status without sustained convulsive activity. Subtle gaze, facial, language, or behavioral fluctuations may be the only clinical clues.',
+   'A routine EEG can reveal an ictal signal, but continuous EEG is more useful when seizure burden is intermittent, treatment response must be followed, or altered awareness persists.',
+   'Brain tumors and surrounding edema can be both the cause of cerebral dysfunction and the substrate for seizures. The two mechanisms can coexist.',
+   'The diagnostic sequence is phenotype → structural context → targeted EEG question → serial electroclinical reassessment, not "abnormal MRI therefore explained."'
+ ],
+ citations:['Herman et al., ACNS consensus statement on continuous EEG indications (2015)','Marcuse et al., Nonconvulsive status epilepticus in patients with brain tumors (2014)','ASCO/SNO endorsement of CNS brain metastasis supportive-care guidelines (2019)','Continuum review of status epilepticus / EEG in persistent altered consciousness'],
+ trap:'Anchoring on the dramatic vasogenic edema as a complete explanation for altered mental status and failing to ask whether the fluctuation itself implies a superimposed cortical process.'
+}
+
 
 ];
+
+// ============================================================
+// Case-specific educational design
+// Universal reasoning is constant; the clinical decision varies by case.
+// ============================================================
+const CASE_DESIGN = {
+  c1:{
+    clinicalQuestion:'Is this a disabling acute ischemic stroke for which reperfusion should proceed now?',
+    finalManagementLabel:'Acute treatment decision',
+    debriefDecisionTitle:'Acute stroke decision',
+    actionPurpose:{cta:'Confirm whether a proximal arterial occlusion creates a thrombectomy pathway without delaying otherwise indicated IV thrombolysis.'},
+    activeQuestions:{
+      cta:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there a proximal arterial occlusion that changes the endovascular pathway?',correct:true},
+        {label:'Can CTA determine whether the current deficit is disabling?'},
+        {label:'Can CTA exclude every important stroke mimic?'}],
+        feedback:'CTA is being used to identify the vascular lesion and determine whether EVT should run in parallel. The clinical examination and functional impact establish the syndrome and disability; CTA should not replace them.'}
+    }
+  },
+  c2:{
+    clinicalQuestion:'With an unknown onset, what information can establish whether reperfusion still has a biologic target?',
+    finalManagementLabel:'Reperfusion decision',
+    debriefDecisionTitle:'Unknown-onset stroke: what does imaging add?',
+    activeQuestions:{
+      ctp:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there salvageable tissue that could make extended-window reperfusion reasonable?',correct:true},
+        {label:'What exact clock time did the stroke begin?'},
+        {label:'Does the patient definitely have a cortical syndrome?'}],
+        feedback:'Perfusion imaging does not recover the missing clock time. It asks a tissue question: whether there is a favorable core/penumbra pattern that could change an extended-window reperfusion decision.'},
+      mri:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there an imaging mismatch that can help select an unknown-onset stroke for treatment?',correct:true},
+        {label:'Can MRI prove the patient was normal at 10 PM?'},
+        {label:'Can MRI replace the bedside localization?'}],
+        feedback:'DWI/FLAIR mismatch is a treatment-selection concept in appropriately selected unknown-onset stroke. It complements the clinical syndrome; it does not reconstruct the exact onset or replace localization.'}
+    }
+  },
+  c3:{
+    clinicalQuestion:'How much uncertainty about timing and identity can remain while still making a safe, evidence-based reperfusion decision?',
+    finalManagementLabel:'Acute treatment decision',
+    debriefDecisionTitle:'Acting despite incomplete collateral'
+  },
+  c4:{
+    clinicalQuestion:'Does a large established infarct burden make thrombectomy futile, or is there still a reasonable EVT pathway?',
+    finalManagementLabel:'Endovascular treatment decision',
+    debriefDecisionTitle:'Large-core thrombectomy reasoning',
+    activeQuestions:{ctp:{prompt:'What question are you trying to answer?',options:[
+      {label:'How much tissue is already infarcted and how much remains potentially salvageable?',correct:true},
+      {label:'Whether the patient has neglect'},
+      {label:'Whether the occlusion is in the right or left hemisphere'}],
+      feedback:'CT perfusion can refine tissue status, but it should be interpreted alongside NCCT/ASPECTS, the vascular lesion, time, and the patient—not as an automatic futility test.'}}
+  },
+  c5:{
+    clinicalQuestion:'Do the crossed cranial-nerve and long-tract findings indicate a posterior-circulation vascular emergency?',
+    finalManagementLabel:'Acute treatment decision',
+    debriefDecisionTitle:'Posterior-circulation reperfusion reasoning'
+  },
+  c6:{
+    clinicalQuestion:'Does the whole acute vestibular syndrome fit a peripheral lesion, or is there enough discordance to pursue a central vascular cause?',
+    finalManagementLabel:'Acute management decision',
+    debriefDecisionTitle:'Using HINTS within the syndrome, not as a shortcut',
+    actionPurpose:{nihss:'Describe the deficit, while recognizing that NIHSS can underrepresent posterior-circulation disability.'},
+    activeQuestions:{
+      nihss:{prompt:'What question are you trying to answer?',options:[
+        {label:'What focal deficits are present, while remembering the score may underrepresent this syndrome?',correct:true},
+        {label:'Can a low NIHSS rule out posterior circulation stroke?'},
+        {label:'Can NIHSS distinguish vestibular neuritis from cerebellar stroke by itself?'}],
+        feedback:'The NIHSS describes some deficits but is not designed to settle an acute vestibular localization. The eye findings, gait/truncal stability, cranial nerves, timing, and associated symptoms must be interpreted together.'},
+      mri:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there a structural posterior-fossa correlate for the central features that remain unexplained?',correct:true},
+        {label:'Can a negative early MRI always rule out posterior circulation stroke?'},
+        {label:'Is HINTS unnecessary whenever MRI is available?'}],
+        feedback:'MRI can provide a structural correlate, but early DWI can miss posterior circulation infarction. Bedside findings and imaging should be reconciled rather than treated as competing absolute tests.'}
+    }
+  },
+  c7:{
+    clinicalQuestion:'Is a numerically minor deficit functionally disabling for this patient, and how should that change treatment?',
+    finalManagementLabel:'Acute treatment decision',
+    debriefDecisionTitle:'Disability is not the NIHSS score',
+    activeQuestions:{
+      collateral:{prompt:'What question are you trying to answer?',options:[
+        {label:'What does this deficit prevent this patient from doing in his normal life?',correct:true},
+        {label:'Can occupation alone prove that thrombolysis is required?'},
+        {label:'Can collateral determine the infarct location?'}],
+        feedback:'Functional disability is patient-specific. The useful question is what the new deficit prevents the patient from doing—not whether the NIHSS is low or whether a job title automatically determines treatment.'}
+    }
+  },
+  c8:{
+    clinicalQuestion:'How should severe hypertension be handled without losing sight of an otherwise time-sensitive reperfusion candidate?',
+    finalManagementLabel:'Acute treatment decision',
+    debriefDecisionTitle:'Blood pressure as a treatment constraint, not a competing diagnosis'
+  },
+  c9:{
+    clinicalQuestion:'Does the presentation represent hemorrhage, and what immediate pathway follows once imaging establishes it?',
+    finalManagementLabel:'Immediate management',
+    debriefDecisionTitle:'Hemorrhage recognition and acute priorities'
+  },
+  c10:{
+    clinicalQuestion:'Does the trajectory fit a resolving postictal deficit, persistent ischemia, or ongoing ictal activity?',
+    finalManagementLabel:'Next management step',
+    debriefDecisionTitle:'Serial examination as diagnostic data',
+    activeQuestions:{
+      eeg:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is persistent or recurrent impaired awareness being driven by ongoing ictal activity?',correct:true},
+        {label:'Did the witnessed convulsion definitely cause the weakness?'},
+        {label:'Can EEG exclude acute ischemic stroke?'}],
+        feedback:'EEG answers an ictal question. It is most useful when impaired awareness or focal deficits remain unexplained or fluctuate in a way that raises concern for ongoing seizure; it does not substitute for structural evaluation when stroke remains plausible.'}
+    }
+  },
+  c11:{
+    clinicalQuestion:'Which neural level—or combination of levels—best explains the bilateral leg weakness, and which test would reduce the remaining localization or etiologic uncertainty?',
+    finalInterpretationLabel:'Best current neurologic model',
+    finalInterpretationHelp:'A single diagnosis is not required. Choose the model that best represents the current localization and competing processes.',
+    finalManagementLabel:'Most useful next direction',
+    finalManagementHelp:'Choose the next direction that best addresses the unresolved high-stakes uncertainty.',
+    debriefDecisionTitle:'Competing localizations and choosing the next test',
+    actionPurpose:{
+      mri_tspine:'Does the thoracic abnormality actually match the bedside syndrome, and is there an urgent compressive lesion?',
+      mri_lspine:'Is there a conus/cauda or lower structural process that better matches the examination?',
+      emg:'Is there a meaningful peripheral neuropathic, radicular, plexus, or myopathic contribution?',
+      lp:'If inflammation or infection remains plausible, does CSF provide evidence for that mechanism?'
+    },
+    activeQuestions:{
+      mri_tspine:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there a thoracic cord lesion that anatomically explains the syndrome, and is it compressive?',correct:true},
+        {label:'Does any thoracic MRI abnormality automatically establish the cause of weakness?'},
+        {label:'Can thoracic MRI exclude a peripheral process?'}],
+        feedback:'The MRI must be tested against the phenotype. A real thoracic lesion can be incidental, chronic, or only partly explanatory; compression, lesion distribution, tempo, and the examination determine its significance.'},
+      mri_lspine:{prompt:'What question are you trying to answer?',options:[
+        {label:'Could a conus/cauda or lower structural process explain findings not accounted for by the thoracic lesion?',correct:true},
+        {label:'Can lumbar MRI determine whether the brain infarcts are acute?'},
+        {label:'Will degenerative changes necessarily explain profound bilateral weakness?'}],
+        feedback:'Lumbar/conus imaging is useful because the bedside localization remains lower or mixed. The goal is not to find any abnormality; it is to find a lesion that actually accounts for the syndrome and excludes a high-stakes compressive process.'},
+      emg:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is a peripheral neuropathic, radicular, plexus, or myopathic process contributing to the weakness?',correct:true},
+        {label:'Is there CSF inflammation supporting myelitis?'},
+        {label:'Are the cerebral infarcts in an ACA distribution?'}],
+        feedback:'EMG/NCS tests the peripheral branch of the localization. It can characterize axonal versus demyelinating physiology and patterns such as neuropathy, radiculopathy, plexopathy, or myopathy. Timing matters: an early nondiagnostic study may not yet exclude a clinically plausible peripheral process.'},
+      lp:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there CSF evidence supporting an inflammatory or infectious neurologic mechanism?',correct:true},
+        {label:'Where exactly along the neuraxis is the weakness localized?'},
+        {label:'Does CSF prove the thoracic lesion is acute?'}],
+        feedback:'LP is primarily an etiologic test here, not a localization test. Cell count, protein, glucose, IgG index/oligoclonal bands, and targeted infectious studies can support or weaken inflammatory or infectious mechanisms, but the result still has to fit the tempo, examination, and MRI.'}
+    }
+  },
+  c12:{
+    clinicalQuestion:'Is there a stable focal or ictal neurologic syndrome that needs targeted neurologic testing, or does the pattern cohere as diffuse fluctuating cerebral dysfunction?',
+    finalInterpretationLabel:'Syndrome interpretation',
+    finalManagementLabel:'What would you do now?',
+    debriefDecisionTitle:'When additional neurologic testing would actually change the model',
+    activeQuestions:{
+      eeg:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is the unexplained alteration in awareness persistent or stereotyped enough to suspect ictal activity?',correct:true},
+        {label:'Can EEG confirm multifactorial delirium?'},
+        {label:'Can EEG rule out a small ischemic stroke?'}],
+        feedback:'EEG is most useful when the phenotype creates an ictal question—persistent unexplained impaired awareness, stereotyped episodes, or fluctuations not explained by the systemic course. It is not a routine confirmation test for delirium.'},
+      mri:{prompt:'What question are you trying to answer?',options:[
+        {label:'Has a persistent focal syndrome or unexplained trajectory emerged that now warrants structural imaging?',correct:true},
+        {label:'Does every episode of inpatient confusion require MRI?'},
+        {label:'Can MRI establish delirium as the diagnosis?'}],
+        feedback:'MRI should answer a structural question created by the phenotype or trajectory. A fluctuating nonfocal attentional syndrome with plausible systemic precipitants does not become more rigorous simply by ordering more imaging.'}
+    }
+  },
+  c13:{
+    clinicalQuestion:'Is this nonspecific fatigue with dysarthria, or is there objective fatigable weakness that localizes the syndrome to the neuromuscular junction?',
+    finalInterpretationLabel:'Best current localization and syndrome',
+    finalManagementLabel:'Most important next step',
+    debriefDecisionTitle:'Turning "fatigue" into a localizable neurologic finding',
+    activeQuestions:{
+      fatigability_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Does sustained activation reveal objective fatigable weakness?',correct:true},
+        {label:'Does the patient report feeling tired? '},
+        {label:'Is dysarthria always caused by a brainstem lesion?'}],
+        feedback:'The point of the provocative examination is to convert a vague symptom into an observable physiologic pattern. Reproducible worsening with sustained activation changes the localization far more than the word "fatigue" alone.'},
+      respiratory_bulbar_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is bulbar or respiratory weakness severe enough to change the urgency and level of monitoring?',correct:true},
+        {label:'Can a normal brief limb exam exclude myasthenia? '},
+        {label:'Does dysarthria severity identify the antibody subtype?'}],
+        feedback:'Bulbar symptoms are not just diagnostic clues; they are a severity question. Swallowing, secretion management, speech endurance, and respiratory function need deliberate serial assessment.'},
+      achr_musk:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there serologic evidence supporting autoimmune myasthenia gravis?',correct:true},
+        {label:'How weak is the patient right now?'},
+        {label:'Can antibody testing replace the bedside examination?'}],
+        feedback:'Antibody testing can confirm and phenotype autoimmune MG, but it does not measure current respiratory/bulbar severity and a negative result does not automatically erase a convincing fatigable clinical syndrome.'},
+      rns:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there physiologic evidence of impaired neuromuscular transmission?',correct:true},
+        {label:'Is there cortical ischemia causing the dysarthria?'},
+        {label:'Is the patient subjectively fatigued?'}],
+        feedback:'RNS tests the neuromuscular-junction hypothesis physiologically. Its interpretation should remain anchored to the distribution and reproducibility of weakness on examination.'}
+    }
+  },
+  c14:{
+    clinicalQuestion:'Is the reduced responsiveness adequately explained by structural disease and edema, or is there ongoing cortical electrical activity that cannot be recognized from the examination alone?',
+    finalInterpretationLabel:'Best current neurologic model',
+    finalManagementLabel:'Most important next step',
+    debriefDecisionTitle:'When an obvious structural abnormality is not the whole explanation',
+    activeQuestions:{
+      mri:{prompt:'What question are you trying to answer?',options:[
+        {label:'Has the structural disease changed enough to explain the new neurologic trajectory?',correct:true},
+        {label:'Can MRI exclude nonconvulsive status epilepticus? '},
+        {label:'Does any amount of edema automatically explain fluctuating awareness?'}],
+        feedback:'Imaging establishes the structural substrate and can reveal progression, hemorrhage, infarction, or mass effect. It cannot determine whether fluctuating cortical electrical activity is simultaneously present.'},
+      eeg:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is ongoing ictal activity contributing to the fluctuating mental status?',correct:true},
+        {label:'Is the vasogenic edema real?'},
+        {label:'Can a short EEG quantify the entire future seizure burden?'}],
+        feedback:'The phenotype creates an ictal question. A routine EEG can reveal seizures or high-risk epileptiform patterns, but intermittent abnormalities may require longer monitoring.'},
+      ceeg:{prompt:'What question are you trying to answer?',options:[
+        {label:'What is the ongoing electrographic seizure burden, and does it respond to treatment over time?',correct:true},
+        {label:'Can continuous EEG determine the histology of the metastases?'},
+        {label:'Can continuous EEG distinguish vasogenic from cytotoxic edema?'}],
+        feedback:'Continuous EEG is used because the process is dynamic. It detects intermittent or subclinical seizures and provides a time series for response and recurrence when the bedside examination alone is insufficient.'}
+    }
+  }
+};
+CASES.forEach(c=>Object.assign(c,CASE_DESIGN[c.id]||{}));
 
 // ============================================================
 // Case reasoning metadata: expected tempo/localization, differential, trajectory
@@ -642,6 +987,14 @@ const CASE_REASONING = {
   c12:{tempo:'fluctuating', localization:'diffuse', localizationOptions:['diffuse','cortex','subcortical','multifocal_unclear'], syndromeOptions:['acute_confusional','mimic','dominant_mca','nondominant_mca'], hypotheses:['Multifactorial delirium','Acute ischemic stroke','Nonconvulsive seizure / status','Medication effect','Other toxic-metabolic encephalopathy'], reexam:[
     'Thirty minutes later she is more attentive and answers orientation questions correctly, though she still loses track during longer tasks. There is no focal motor, language, visual, or sensory deficit.',
     'Later in the afternoon she is again drowsier and inattentive but arouses to voice and remains symmetric on focal neurologic examination.'
+  ]},
+  c13:{tempo:'progressive', localization:'nmj_pns', localizationOptions:['nmj_pns','brainstem','cortex','pns','multifocal_unclear'], syndromeOptions:['fatigable_bulbar','posterior_brainstem','mimic'], hypotheses:['Neuromuscular-junction disorder','Brainstem or cortical lesion','Myopathy','Medication or toxic-metabolic process','Generalized fatigue without focal neurologic weakness'], reexam:[
+    'After several minutes of conversation, dysarthria is more apparent and mild ptosis has returned. After a brief period of rest, both improve partially.',
+    'Later examination again shows preserved sensation and reflexes with reproducible facial, bulbar, and proximal fatigability rather than a fixed focal deficit.'
+  ]},
+  c14:{tempo:'acute', localization:'multifocal_unclear', localizationOptions:['diffuse','cortex','multifocal_unclear'], syndromeOptions:['structural_fluctuating_ams','acute_confusional','mimic'], hypotheses:['Nonconvulsive seizure / status','Vasogenic edema / tumor-related dysfunction','Medication effect','Other toxic-metabolic encephalopathy','Acute ischemic or hemorrhagic event'], reexam:[
+    'Ten minutes later he opens his eyes and follows a command with both hands. Several minutes after that he stares, becomes mute, and has a brief subtle right facial twitch before again becoming partially responsive.',
+    'The examination continues to fluctuate without a new fixed hemiparesis. This time series increases concern for a dynamic cortical process superimposed on the structural disease.'
   ]}
 };
 
