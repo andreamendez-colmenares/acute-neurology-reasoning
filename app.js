@@ -1,6 +1,6 @@
 "use strict";
 
-const KEY = "acute_neurology_reasoning_v27";
+const KEY = "acute_neurology_reasoning_v30";
 const ONBOARD_KEY = "acute_neurology_reasoning_onboarded";
 const THEMES = {
   all:"All presentations",
@@ -108,9 +108,9 @@ function caseName(c){
 }
 function openOnboardingSheet(markSeen=true){
   showSheet("","How each case works",`<div class="onboard-steps">
-    <div><b>1</b><span><strong>Examine</strong><small>Read the presentation, baseline, and neurologic examination.</small></span></div>
+    <div><b>1</b><span><strong>Examine</strong><small>Start with the complete neurologic examination. Add syndrome-specific maneuvers only when they help answer a clinical question.</small></span></div>
     <div><b>2</b><span><strong>Frame</strong><small>Define pace, then localization and syndrome; add context when building the differential.</small></span></div>
-    <div><b>3</b><span><strong>Clarify</strong><small>Choose an action that answers a specific question.</small></span></div>
+    <div><b>3</b><span><strong>Clarify</strong><small>Gather only the history, examination detail, or test that addresses a real remaining uncertainty.</small></span></div>
     <div><b>4</b><span><strong>Update</strong><small>Revise only when new information changes the model.</small></span></div>
     <div><b>5</b><span><strong>Finalize</strong><small>Working interpretation and next step.</small></span></div>
   </div><div class="sheet-actions"><button class="primary" id="beginCase">${S.view==="case"?'Begin case':'Close'}</button></div>`);
@@ -152,9 +152,8 @@ function clarifyButtonsHTML(includeFinalize=false){
 }
 function nextStepHTML(){
   if(!S.modelFramed) return `<section class="next-step-card"><div><h2>Frame the neurologic problem</h2></div><button class="primary" id="nextFrame">Frame the problem</button></section>`;
-  if(dataCount()===0) return `<section class="next-step-card"><div><h2>What uncertainty matters now?</h2></div>${clarifyButtonsHTML(false)}</section>`;
-  if(hasNewData()) return `<section class="next-step-card"><div><h2>What changed?</h2></div><div class="next-step-actions"><button class="primary" id="nextUpdate">Update model</button>${clarifyButtonsHTML(canFinalize())}</div></section>`;
-  return `<section class="next-step-card"><div><h2>What still needs clarification?</h2></div>${clarifyButtonsHTML(canFinalize())}</section>`;
+  const updateNudge=hasNewData()?`<div class="model-update-nudge"><span>If the new information changes your localization, syndrome, or differential, update the working model.</span><button class="secondary compact" id="nextUpdate">Update model</button></div>`:'';
+  return `<section class="next-step-card simplified-next"><div><h2>Clarify what remains uncertain</h2></div>${updateNudge}${clarifyButtonsHTML(canFinalize())}</section>`;
 }
 function wireNextStep(){
   const f=$("#nextFrame"); if(f)f.onclick=()=>openModelSheet(true);
@@ -201,19 +200,18 @@ function neurologicExamHTML(c){
 function renderCase(app,c){
   const r=reasoningFor(c);
   app.innerHTML=`<section class="case-flow">
-    ${workflowHTML()}
     <section class="patient-summary readable-summary">
       <div class="case-kicker">Case ${c.n}</div>
       <div class="consult-block">
-        <div class="summary-label">Reason for consultation</div>
+        <div class="summary-label">Consult for</div>
         <h1 class="consult-reason">${htmlSafe(c.activation||caseName(c))}</h1>
       </div>
       <div class="summary-block presentation-block">
-        <div class="summary-label">Presentation</div>
-        <p>${htmlSafe(c.presentation||c.arrival)}</p>
+        <div class="summary-label">HPI</div>
+        <p>${htmlSafe(c.arrival||c.presentation)}</p>
       </div>
       <div class="summary-block context-block">
-        <div class="summary-label">Relevant context</div>
+        <div class="summary-label">Relevant history</div>
         <p>${htmlSafe(c.context||'')}</p>
       </div>
       <div class="baseline-block">
@@ -223,18 +221,13 @@ function renderCase(app,c){
     </section>
     ${neurologicExamHTML(c)}
     ${S.modelFramed && c.clinicalQuestion?`<section class="clinical-question-card"><div class="eyebrow">Question to resolve</div><p>${htmlSafe(c.clinicalQuestion)}</p></section>`:''}
+    ${workingModelBarHTML(r)}
     ${nextStepHTML()}
-    ${S.modelFramed?`<section class="case-body ${S.timeline.length?'':'model-only'}">
-      ${S.timeline.length?`<div class="timeline-panel">
+    ${S.modelFramed && S.timeline.length?`<section class="case-body">
+      <div class="timeline-panel">
         <div class="timeline-head"><h2>New information</h2></div>
         <div class="timeline">${S.timeline.map(renderEvent).join('')}</div>
-      </div>`:''}
-      <aside class="workspace-side">
-        <div class="panel model-panel">
-          <div class="panel-head"><div><div class="eyebrow">Working model</div></div><button class="ghost" id="editModel">Revise</button></div>
-          ${workingModelHTML(r)}
-        </div>
-      </aside>
+      </div>
     </section>`:''}
   </section>`;
   const edit=$("#editModel"); if(edit)edit.onclick=()=>openModelSheet(false);
@@ -254,9 +247,23 @@ function workingModelHTML(r){
   return `<div class="model-rows">${rows}</div>${diffs?`<div class="diff-list"><div class="model-subhead">Differential after context</div>${diffs}</div>`:''}`;
 }
 
+function workingModelBarHTML(r){
+  if(!S.modelFramed) return "";
+  const ranked=["high","moderate","low","very_low"];
+  const leading=[];
+  ranked.forEach(level=>r.hypotheses.filter(h=>S.hypothesisLevels[h]===level).forEach(h=>{if(leading.length<2)leading.push(h);}));
+  return `<section class="working-model-bar" aria-label="Current working model">
+    <div class="working-model-item"><span>Pace</span><b>${htmlSafe(titleFor(TEMPOS,S.tempo))}</b></div>
+    <div class="working-model-item"><span>Localization</span><b>${htmlSafe(titleFor(LOCALIZATIONS,S.localization))}</b></div>
+    <div class="working-model-item"><span>Syndrome</span><b>${htmlSafe(titleFor(SYNDROMES,S.syndrome))}</b></div>
+    <div class="working-model-item differential"><span>Leading differential</span><b>${htmlSafe(leading.join(" · ")||"Not ranked")}</b></div>
+    <button class="ghost compact" id="editModel">Revise</button>
+  </section>`;
+}
+
 function openSheet(kind){
   if(kind==="ask") return openActionSheet("Ask",[["history","History and collateral"]]);
-  if(kind==="examine") return openActionSheet("Targeted maneuvers",[["bedside","Syndrome-specific additions to the complete examination"]]);
+  if(kind==="examine") return openActionSheet("Targeted maneuvers",[["bedside","Syndrome-specific additions"]],"The complete neurologic examination is already documented. Add maneuvers only when they help answer a localization, syndrome, or severity question.");
   if(kind==="test") return openActionSheet("Test",[["imaging","Imaging"],["other","Other tests / resources"]]);
 }
 function showSheet(eyebrow,title,html){
@@ -264,9 +271,9 @@ function showSheet(eyebrow,title,html){
 }
 function closeSheet(){ const d=$("#sheet"); if(d.open)d.close(); }
 
-function openActionSheet(title,sections){
+function openActionSheet(title,sections,intro=""){
   const c=getCase();
-  const html=sections.map(([key,label])=>{
+  const html=(intro?`<p class="sheet-intro">${htmlSafe(intro)}</p>`:"")+sections.map(([key,label])=>{
     const available=ACTIONS[key].filter(a=>{
       if(a.id==="nihss" && !(c.strokeTools||[]).includes("nihss")) return false;
       if(Array.isArray(c.availableActions) && !c.availableActions.includes(a.id)) return false;

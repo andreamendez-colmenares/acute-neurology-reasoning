@@ -42,3 +42,8 @@ Open `index.html` in a browser. The project uses plain HTML, CSS, and JavaScript
 
 
 Clinical tests are presented as tools for answering specific neurologic questions. For example, perfusion imaging is framed as an adjunct that may add tissue-status information in selected stroke cases rather than as either a mandatory step or a test to dismiss.
+
+
+## Interaction principle
+
+The complete neurologic examination is presented for every case. Syndrome-specific maneuvers are added only when they address a localization or severity question. The learner keeps a compact working model (pace, localization, syndrome, leading differential) and revises it when new information changes the model. Explicit “why are you ordering this test?” prompts are reserved for diagnostic tests.
