@@ -4,13 +4,15 @@
 
 The core framework is:
 
-**How did this happen? → Where is it? → What syndrome does that produce? → What causes that syndrome in this context?**
+**Pace → Localization → Syndrome → Context-informed differential**
+
+Pace is based on the onset and evolution of symptoms. The learner then localizes from the history and raw examination, constructs the syndrome, and only then uses clinical context to order the etiologic differential.
 
 The neurologic examination is central to every case. Findings are shown as raw observations whenever possible so the learner has to interpret them rather than being given a localization or diagnostic label.
 
 Each case follows the same sequence:
 
-**See the patient → Frame → Clarify → Update → Finalize**
+**Examine → Frame → Clarify → Update → Finalize**
 
 Cases may involve stroke, seizure, myelopathy, delirium, vestibular syndromes, neuromuscular disease, and other acute neurologic problems. Some have a clear answer; others intentionally preserve uncertainty or competing localizations.
 
@@ -24,7 +26,7 @@ Stroke cases use **TNK** consistently to mirror Duke acute-stroke practice. The 
 
 ## Inspiration
 
-The project was inspired in part by Ethan Meltzer's *How to Think Like a Neurologist: A Case-Based Guide to Clinical Reasoning in Neurology*, particularly its emphasis on tempo, localization, syndrome construction, context, and differential diagnosis. This is an independent educational project and is not affiliated with the author or publisher.
+The project was inspired in part by Ethan Meltzer's *How to Think Like a Neurologist: A Case-Based Guide to Clinical Reasoning in Neurology*, particularly its emphasis on pace, localization, syndrome construction, context, and differential diagnosis. This is an independent educational project and is not affiliated with the author or publisher.
 
 ## Privacy and educational use
 

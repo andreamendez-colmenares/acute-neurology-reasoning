@@ -53,7 +53,7 @@ button{touch-action:manipulation}
 .home-sequence i{font-style:normal;color:#98a2b3}.home-toolbar{margin-top:14px}.filter-control{display:grid;gap:6px;max-width:360px}.filter-control span{font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;color:#667085}.filter-control select{min-height:44px;border:1px solid #d0d5dd;border-radius:11px;background:#fff;padding:9px 36px 9px 11px;color:#344054;font-weight:700}
 .theme-row{display:none}
 .case-card h3{font-size:15px;line-height:1.35;margin:5px 0 0}.case-card:hover{border-color:#a5b4fc;background:#fbfcff}
-.case-flow{display:grid;gap:14px}.case-body{display:grid;gap:14px}.workflow-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:8px}
+.case-flow{display:grid;gap:14px}.case-body{display:grid;gap:14px}.workflow-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:8px}
 .workflow-step{display:flex;align-items:center;gap:6px;min-width:0;color:#98a2b3}.workflow-step span{width:22px;height:22px;flex:0 0 22px;border-radius:50%;border:1px solid #d0d5dd;display:grid;place-items:center;font-size:10px;font-weight:850;background:#fff}.workflow-step b{font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.workflow-step.done{color:#475467}.workflow-step.done span{background:#f2f4f7;border-color:#e4e7ec}.workflow-step.active{color:var(--brand)}.workflow-step.active span{background:var(--brandSoft);border-color:#818cf8;color:var(--brand)}
 .next-step-card{display:grid;gap:12px;background:#fff;border:1px solid #c7d2fe;border-radius:14px;padding:14px;box-shadow:0 4px 14px rgba(49,46,129,.05)}.next-step-card h2{font-size:17px;margin:2px 0 4px}.next-step-card p{font-size:13px;line-height:1.5;color:#475467;margin:0}.next-step-card>.primary{width:100%}.next-step-actions{display:flex;gap:8px;flex-wrap:wrap}.next-step-actions .primary,.next-step-actions .secondary{flex:1 1 150px}.next-step-actions .ghost{flex:0 0 auto}.empty-model{margin:0;color:#667085;font-size:13px}
 .mobile-actions{display:none!important}.finalize-button,.reexam-button,.desktop-actions{display:none!important}
@@ -84,3 +84,74 @@ button{touch-action:manipulation}
 .patient-summary .case-context-line{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:start;padding-top:9px;border-top:1px solid #eef0f3;margin-top:8px}.patient-summary .case-context-line span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#667085}.patient-summary .case-context-line p{margin:0;font-size:12.5px;line-height:1.45;color:#667085}
 .frame-progress{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.frame-progress>span{font-size:11px;font-weight:800;color:#667085}.frame-progress>div{display:flex;gap:5px}.frame-progress i{display:block;width:24px;height:4px;border-radius:999px;background:#e4e7ec}.frame-progress i.on{background:#6366f1}
 @media(max-width:640px){.patient-summary .case-context-line{grid-template-columns:1fr;gap:4px}}
+
+
+/* v24: readable case opening — vertical hierarchy, short line length, no label-value eye tracking */
+.patient-summary.readable-summary{
+  padding:20px 22px;
+  display:block;
+}
+.readable-summary .case-kicker{margin-bottom:12px}
+.readable-summary .consult-block{max-width:760px}
+.readable-summary .summary-label{
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.085em;
+  font-weight:800;
+  color:#667085;
+  margin-bottom:5px;
+}
+.readable-summary .consult-reason{
+  margin:0;
+  max-width:760px;
+  font-size:21px;
+  line-height:1.28;
+  letter-spacing:-.012em;
+  color:#101828;
+}
+.readable-summary .summary-block{
+  max-width:760px;
+  margin-top:17px;
+  padding-top:15px;
+  border-top:1px solid #e7eaf0;
+}
+.readable-summary .summary-block p,
+.readable-summary .baseline-block p{
+  margin:0;
+  max-width:72ch;
+  font-size:14px;
+  line-height:1.58;
+  color:#344054;
+}
+.readable-summary .context-block{
+  margin-top:15px;
+  padding:13px 15px;
+  border:0;
+  border-radius:10px;
+  background:#f8f9fb;
+}
+.readable-summary .context-block p{color:#475467}
+.readable-summary .baseline-block{
+  max-width:760px;
+  margin-top:13px;
+  padding-top:13px;
+  border-top:1px solid #e7eaf0;
+}
+.readable-summary .baseline-block p{font-size:13.5px;line-height:1.5}
+/* Neutralize legacy grid rules inside the new opening card. */
+.readable-summary .activation-line,
+.readable-summary .presentation-line,
+.readable-summary .case-context-line,
+.readable-summary .baseline-line{display:block}
+@media(max-width:640px){
+  .patient-summary.readable-summary{padding:17px 16px}
+  .readable-summary .consult-reason{font-size:19px}
+  .readable-summary .summary-block p,.readable-summary .baseline-block p{font-size:13.5px;line-height:1.55}
+  .readable-summary .context-block{padding:12px 13px}
+}
+
+.case-body.model-only{display:block}.case-body.model-only .workspace-side{position:static;max-width:none}
+
+.frame-principle{margin:.2rem 0 .75rem;padding:.55rem .7rem;border-left:3px solid var(--line,#c9d3dc);font-size:.9rem;line-height:1.35;color:var(--muted,#52606d)}
+.reasoning-frame-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:760px){.reasoning-frame-summary{grid-template-columns:1fr}}

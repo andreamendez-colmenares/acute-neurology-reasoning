@@ -2,23 +2,26 @@
 // Neurologic reasoning framework
 // ============================================================
 const TEMPOS = [
-  {id:'hyperacute', title:'Hyperacute / sudden', desc:'Seconds to minutes; maximal or near-maximal early.'},
-  {id:'acute', title:'Acute', desc:'Develops over minutes to hours.'},
-  {id:'fluctuating', title:'Fluctuating / episodic', desc:'Waxing, waning, recurrent, or stereotyped.'},
-  {id:'progressive', title:'Progressive', desc:'Builds over hours to days rather than appearing all at once.'},
-  {id:'unclear', title:'Unclear', desc:'The timeline itself is uncertain or conflicting.'}
+  {id:'hyperacute', title:'Hyperacute', desc:'Symptoms develop over seconds to minutes.'},
+  {id:'acute', title:'Acute', desc:'Symptoms develop over minutes to hours to days.'},
+  {id:'subacute', title:'Subacute', desc:'Symptoms develop over days to weeks to months.'},
+  {id:'chronic', title:'Chronic', desc:'Symptoms develop over months to years.'},
+  {id:'unclear', title:'Unclear', desc:'The onset or evolution cannot yet be defined reliably.'},
+  {id:'acute_on_subacute', title:'Acute on a subacute background', desc:'A new acute change is superimposed on symptoms evolving over days to weeks.'}
 ];
 
 const LOCALIZATIONS = [
   {id:'cortex', title:'Cerebral cortex', desc:'Language, neglect, gaze, visual field, cortical sensory or motor pattern.'},
   {id:'subcortical', title:'Subcortical / deep hemisphere', desc:'Internal capsule, thalamus, deep white matter.'},
   {id:'brainstem', title:'Brainstem', desc:'Cranial nerve findings, crossed signs, long-tract pattern.'},
-  {id:'cerebellar', title:'Cerebellar / vestibular network', desc:'Gait or truncal ataxia, nystagmus, dysmetria, acute vestibular syndrome.'},
+  {id:'cerebellar', title:'Cerebellum / central vestibular pathways', desc:'Truncal or gait ataxia, dysmetria, central ocular-motor findings, or posterior-fossa features.'},
+  {id:'peripheral_vestibular', title:'Peripheral vestibular apparatus / nerve', desc:'A vestibular pattern arising from the labyrinth or vestibular nerve without other central neurologic findings.'},
   {id:'diffuse', title:'Diffuse cerebral dysfunction', desc:'Global attention/arousal disturbance without a coherent focal syndrome.'},
   {id:'spinal_cord', title:'Spinal cord', desc:'A myelopathic pattern involving long tracts, a sensory level, or autonomic dysfunction.'},
   {id:'conus_roots', title:'Conus / cauda equina / lumbosacral roots', desc:'Leg weakness with root, saddle sensory, sphincter, or lower-motor-neuron features.'},
   {id:'pns', title:'Peripheral nerve / plexus', desc:'Length-dependent, multifocal, or nerve-distribution motor and sensory findings.'},
-  {id:'nmj_pns', title:'NMJ / muscle', desc:'Fatigable, bulbar, ocular, or proximal weakness without a sensory level.'},
+  {id:'nmj', title:'Neuromuscular junction', desc:'Fluctuating or fatigable ocular, bulbar, facial, axial, or limb weakness without sensory loss.'},
+  {id:'muscle', title:'Muscle', desc:'Predominantly proximal or axial weakness with preserved sensation; pattern may be fixed or exercise-related depending on the process.'},
   {id:'multifocal_unclear', title:'Multifocal / unclear', desc:'Findings do not yet map cleanly to one neuroanatomic site.'}
 ];
 
@@ -125,7 +128,7 @@ const ACTION_PURPOSE = {
   osh:'Recover prior neurologic information that could change the current model.',
   ncct:'Exclude hemorrhage and look for structural clues that change acute management.',
   cta:'Ask whether a vascular lesion explains the syndrome and changes reperfusion options.',
-  ctp:'Ask whether tissue information would change an extended-window reperfusion decision.',
+  ctp:'Ask whether perfusion information would change an extended-window thrombolysis or EVT decision; do not treat CTP as a mandatory gate when CT/CTA and ASPECTS already establish an EVT pathway.',
   mri:'Look for a structural correlate when MRI can resolve a remaining diagnostic question.',
   mri_tspine:'Ask whether a thoracic cord lesion matches the bedside localization and excludes compression.',
   mri_lspine:'Evaluate conus, cauda equina, or lower structural disease when the phenotype remains lower than the known lesion.',
@@ -173,7 +176,7 @@ const CASE_IMAGES = {
       caseTitle: '',
       author: 'Dr Andrew Murphy',
       url: 'https://radiopaedia.org/cases/left-mca-stroke-dense-mca-sign',
-      note: 'Take a careful look at the MCAs and the Sylvian fissures on each side before clicking back. What stands out?'
+      note: 'Compare the MCAs and Sylvian fissures on both sides. What stands out?'
     }
   }
   // To add more: c4 ncct (large core ASPECTS), c8 ncct (hyperdense MCA), c9 ncct (basal ganglia ICH).
@@ -209,7 +212,7 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','collateral'],
- syndromeStory:'This patient suddenly stopped talking, kept staring to the left, and lost movement of the right arm and leg. That bedside pattern is a left dominant hemispheric cortical syndrome, classic for a left middle cerebral artery (M1) occlusion. On the very first non-contrast CT head, the L M1 may already show a <b>hyperdense MCA sign</b>, a bright linear thrombus visible before any contrast is given (the bright structure in the L Sylvian fissure on the Radiopaedia example). Recognizing it can strengthen the working diagnosis while IV thrombolysis eligibility is assessed; vascular imaging should proceed in parallel and should not unnecessarily delay otherwise indicated thrombolysis. CTA then confirmed the L M1 occlusion, matching the syndrome. Within 90 minutes of onset, this is a reperfusion candidate: IV tenecteplase plus paging IR to discuss MT in parallel.',
+ syndromeStory:'This patient suddenly stopped talking, kept staring to the left, and lost movement of the right arm and leg. That bedside pattern localizes to the left dominant hemisphere and is highly concordant with a left middle cerebral artery syndrome. On the very first non-contrast CT head, the L M1 may already show a <b>hyperdense MCA sign</b>, a bright linear thrombus visible before any contrast is given (the bright structure in the L Sylvian fissure on the Radiopaedia example). Recognizing it can strengthen the working diagnosis while IV thrombolysis eligibility is assessed; vascular imaging should proceed in parallel and should not unnecessarily delay otherwise indicated thrombolysis. CTA then confirmed the L M1 occlusion, matching the syndrome. Within 90 minutes of onset, this is a reperfusion candidate: IV tenecteplase plus paging IR to discuss MT in parallel.',
  teach:[
    'Recognize dominant hemispheric cortical dysfunction at the bedside: aphasia, forced gaze deviation toward the lesion, and dense contralateral face-arm-leg weakness point to a proximal anterior-circulation LVO until proven otherwise.',
    'Within 4.5 hours, do not delay eligible TNK for additional multimodal imaging. Noncontrast CT is used to exclude hemorrhage; CTA should proceed rapidly in parallel when LVO is suspected.',
@@ -219,7 +222,6 @@ const CASES = [
    'Bridging thrombolysis still matters in eligible LVO. In BRIDGE-TNK, 90-day functional independence was 53% with tenecteplase plus thrombectomy vs 44% with thrombectomy alone, with similar safety.'
  ],
  citations:['2026 AHA/ASA Acute Ischemic Stroke Guideline', '2025 TNKase FDA label', 'BRIDGE-TNK trial'],
- trap:'Delaying reperfusion because the patient identity is not yet known. Identity sorting can happen in parallel.'
 },
 
 {id:'c2', n:2,
@@ -246,7 +248,7 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','ctp','collateral'],
- syndromeStory:'Found down at 6:30 AM, last seen normal at 10 PM. She is mute, is not blinking to threat on her right, and is not moving the right side. That is a dense left dominant hemispheric cortical syndrome. CTA showed a left ICA terminus (T) occlusion. Wake-up presentation is not an automatic exclusion. CTA already establishes a proximal LVO, and her noncontrast CT remains favorable. Under the 2026 guideline, appropriate proximal ICA/M1 occlusions can qualify for EVT from 6 to 24 hours using clinical features plus CT/ASPECTS; CTP can add tissue information and may matter for an extended-window IV-thrombolysis question, but it should not become a mandatory hurdle to EVT.',
+ syndromeStory:'Found down at 6:30 AM, last seen normal at 10 PM. She is mute, is not blinking to threat on her right, and is not moving the right side. That is a dense left dominant hemispheric cortical syndrome. CTA showed a left ICA terminus (T) occlusion. Unknown onset changes the treatment-selection question; it does not end the evaluation. CTA already establishes a proximal LVO, and her noncontrast CT remains favorable. Under the 2026 guideline, appropriate proximal ICA/M1 occlusions can qualify for EVT from 6 to 24 hours using clinical features plus CT/ASPECTS; CTP can add tissue information and may matter for an extended-window IV-thrombolysis question, but it should not become a mandatory hurdle to EVT.',
  teach:[
    'Recognize a wake-up stroke as an imaging-selection problem, not an automatic exclusion.',
    'Localize first, then let imaging decide treatment. Dense aphasia, hemianopia, gaze deviation, and hemiplegia still point to a left hemispheric LVO even when onset is unknown. When onset is unknown or unconfirmed, treat the case as a wake-up stroke.',
@@ -254,8 +256,7 @@ const CASES = [
    'For unknown-onset or extended-window IV thrombolysis, MRI DWI-FLAIR mismatch or perfusion mismatch can identify selected patients who may benefit. These cases use TNK for IV thrombolysis decisions to match Duke practice.',
    'The 2026 guideline now supports EVT for proximal ICA/M1 occlusion from 6 to 24 hours in appropriate patients with NIHSS at least 6, prestroke mRS 0 to 1, and ASPECTS at least 6. Perfusion imaging can be useful, but a favorable CTP is no longer the only way to identify a late-window EVT candidate.'
  ],
- citations:['WAKE-UP trial', 'DAWN trial', 'DEFUSE 3 trial', '2026 AHA/ASA AIS Guideline'],
- trap:'Calling a wake-up stroke "outside the window" before doing imaging selection.'
+ citations:['2026 AHA/ASA Acute Ischemic Stroke Guideline','Gonzalez et al., Response on EVT imaging selection in the 6–24-hour window (Stroke 2026)','WAKE-UP trial'],
 },
 
 {id:'c3', n:3,
@@ -282,14 +283,13 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','ctp','collateral'],
- syndromeStory:'Found unresponsive at a bus stop with no ID, no phone, and no clear timeline. She has a left dominant hemispheric cortical syndrome (no speech, no movement on the right side). CTA showed a left M1 occlusion. CTP showed a mismatch. The right answer is to act on the syndrome and the imaging, not to wait for the clock to be perfect. Document the uncertainty and proceed.',
+ syndromeStory:'Found unresponsive at a bus stop with no ID, no phone, and no clear timeline. She has a left dominant hemispheric cortical syndrome (no speech, no movement on the right side). CTA showed a left M1 occlusion. CTP showed a mismatch. The syndrome and vascular imaging remain actionable despite incomplete timing information. The uncertainty should be documented rather than treated as a reason for diagnostic paralysis.',
  teach:[
    'Act on concordance: dense dominant-hemisphere syndrome, proximal occlusion on CTA, and favorable perfusion mismatch together support thrombectomy even when collateral history is incomplete.',
    'The 2026 AHA/ASA AIS guideline emphasizes streamlined imaging and systems-of-care so treatment is not delayed, even when you do not have all the information about a patient.',
-   'Reinforce late-window thrombectomy selection: in selected patients with favorable imaging, EVT remains indicated up to 16 hours and reasonable up to 24 hours from last known well based on DAWN and DEFUSE 3 paradigms.'
+   'Use the current late-window EVT framework rather than older DAWN/DEFUSE-only rules. In the 2026 AHA/ASA guideline, proximal ICA/M1 occlusion from 6 to 24 hours can qualify for EVT using the clinical syndrome, CTA, and CT/ASPECTS criteria; advanced perfusion imaging can be useful when immediately available but is not a universal prerequisite.'
  ],
- citations:['DAWN trial', 'DEFUSE 3 trial', '2026 AHA/ASA AIS Guideline'],
- trap:'Halting the code while waiting for collateral history or a perfect last known well time.'
+ citations:['2026 AHA/ASA Acute Ischemic Stroke Guideline','Gonzalez et al., Response on EVT imaging selection in the 6–24-hour window (Stroke 2026)'],
 },
 
 {id:'c4', n:4,
@@ -316,7 +316,7 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','ctp','collateral'],
- syndromeStory:'Eleven hours from last known well. Right gaze deviation, left face/arm/leg weakness, and left-sided extinction. That pattern is a right nondominant hemispheric cortical syndrome. CTA confirmed a right M1 occlusion. ASPECTS is 4 because more than half of the MCA territory shows early ischemic change on CT head. Older logic would have called that too large for thrombectomy. Current evidence (SELECT2, ANGEL ASPECT, TESLA) supports thrombectomy in selected patients with ASPECTS 3 to 5, age under 80, and NIHSS at least 6. Tenecteplase at 11 hours is out of standard window.',
+ syndromeStory:'Eleven hours from last known well. Right gaze deviation, left face/arm/leg weakness, and left-sided extinction. That pattern is a right nondominant hemispheric cortical syndrome. CTA confirmed a right M1 occlusion. ASPECTS is 4 because more than half of the MCA territory shows early ischemic change on CT head. Older logic would have called that too large for thrombectomy. Current evidence (SELECT2, ANGEL ASPECT, TESLA) supports thrombectomy in selected patients with ASPECTS 3 to 5, age under 80, and NIHSS at least 6. At 11 hours with a proximal LVO and a clear EVT pathway, the central reperfusion question is thrombectomy; any extended-window IV-thrombolysis consideration is imaging-selected and should not delay EVT.',
  teach:[
    'Recognize nondominant MCA cortex from the exam: gaze preference toward the lesion (right gaze), contralateral hemiparesis, hemianopia, and extinction or neglect are cortical findings, not a lacunar pattern.',
    'Score ASPECTS carefully but not fatalistically. Low ASPECTS predicts worse absolute prognosis, but it does not prove futility.',
@@ -324,8 +324,7 @@ const CASES = [
    'Pooled lesson: a meta-analysis of six randomized large-core trials found better 90-day mRS (generalized OR 1.6) and more independent ambulation (RR 1.9), with higher symptomatic ICH (RR 1.7).',
    'The 2026 AHA/ASA guideline gives a Class 1 recommendation for selected proximal ICA/M1 occlusions 6 to 24 hours from onset with age under 80, NIHSS at least 6, prestroke mRS 0 to 1, ASPECTS 3 to 5, and no significant mass effect. It also makes EVT reasonable in selected ASPECTS 0 to 2 patients within 6 hours.'
  ],
- citations:['SELECT2 trial', 'LASTE trial', 'Large-core RCT meta-analysis', '2026 AHA/ASA AIS Guideline'],
- trap:'Excluding from MT based on outdated ASPECTS logic.'
+ citations:['2026 AHA/ASA Acute Ischemic Stroke Guideline','SELECT2 trial','LASTE trial','Large-core RCT meta-analysis'],
 },
 
 {id:'c5', n:5,
@@ -352,7 +351,7 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','collateral'],
- syndromeStory:'He became suddenly sleepy. The left pupil is blown, the eyelid droops, and the eye sits down and out. The right arm and leg are weak. That bedside pattern is an ipsilateral oculomotor (CN III) palsy plus contralateral hemiparesis, which localizes to the left midbrain. The classic name is Weber syndrome. CTA confirmed a basilar tip occlusion, the vascular emergency that explains the syndrome. Within 4.5 hours of onset, this is a reperfusion candidate: IV tenecteplase plus paging IR to discuss MT. Basilar thrombectomy is Class 1 within 24 hours when NIHSS is at least 10.',
+ syndromeStory:'He became suddenly sleepy. The left pupil is enlarged and poorly reactive, the eyelid droops, and the eye rests down and out. The right arm and leg are weak. That bedside pattern is an ipsilateral oculomotor (CN III) palsy plus contralateral hemiparesis, which localizes to the left midbrain. CTA confirmed a basilar tip occlusion, the vascular emergency that explains the syndrome. Within 4.5 hours of onset, this is a reperfusion candidate: IV tenecteplase plus paging IR to discuss MT. Basilar thrombectomy is Class 1 within 24 hours when NIHSS is at least 10.',
  teach:[
    'Perform a cranial nerve exam immediately in suspected posterior-circulation stroke. The NIHSS does not adequately capture brainstem signs, and CN findings are often the localization clue that changes management.',
    'Recognize crossed brainstem findings: ipsilateral CN III palsy with contralateral hemiparesis localizes to the midbrain and should trigger urgent posterior-circulation vascular imaging.',
@@ -361,7 +360,6 @@ const CASES = [
    'The 2026 AHA/ASA guideline gives a strong recommendation for EVT within 24 hours for basilar artery occlusion when baseline mRS is 0 to 1, NIHSS is at least 10, and pc-ASPECTS is at least 6.'
  ],
  citations:['ATTENTION trial', 'BAOCHE trial', '2026 AHA/ASA AIS Guideline'],
- trap:'Calling it "just a brainstem stroke" and missing that it could be a thrombectomy lesion. NIHSS undercounts posterior strokes.'
 },
 
 {id:'c6', n:6,
@@ -389,7 +387,7 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','mri','collateral'],
- syndromeStory:'Sudden severe spinning, vomiting, slurred speech, and inability to sit up. The bedside eye findings are not a classic central HINTS pattern, but the severe truncal instability and dysarthria remain discordant with a simple peripheral explanation. NIHSS is misleadingly low at 4. The bedside pattern is a cerebellar/vestibular posterior circulation syndrome, and CTA confirmed a distal basilar thrombus. MRI showed acute infarcts in cerebellum and pons. We treat the syndrome, not the score. Within 4.5 hours, the disabling posterior-circulation syndrome remains an IV TNK question. The distal basilar thrombus warrants an urgent neuro-IR discussion, but his NIHSS of 4 does not meet the strong 2026 guideline criterion for basilar EVT; the thrombectomy evidence at this severity is uncertain.',
+ syndromeStory:'Sudden severe spinning, vomiting, slurred speech, and inability to sit up. The bedside eye findings are not a classic central HINTS pattern, but the severe truncal instability and dysarthria remain discordant with a simple peripheral explanation. NIHSS is misleadingly low at 4. The bedside pattern is a cerebellar/vestibular posterior circulation syndrome, and CTA confirmed a distal basilar thrombus. MRI showed acute infarcts in cerebellum and pons. A low NIHSS does not capture the severity of the truncal and ocular-motor findings. Within 4.5 hours, the disabling posterior-circulation syndrome remains an IV TNK question. The distal basilar thrombus warrants an urgent neuro-IR discussion, but his NIHSS of 4 does not meet the strong 2026 guideline criterion for basilar EVT; the thrombectomy evidence at this severity is uncertain.',
  teach:[
    'Take the acute vestibular syndrome seriously. Do not call this peripheral vertigo until you have actively tried to prove it is peripheral.',
    'Interpret the individual bedside findings rather than accepting a label such as “HINTS positive” or “HINTS negative.” The examination only has meaning in the correct acute vestibular syndrome context.',
@@ -400,7 +398,6 @@ const CASES = [
    'For basilar occlusion with NIHSS 6 to 9, the 2026 guideline states that EVT effectiveness is not well established. With still milder deficits, the evidence is even less certain, so vessel anatomy and clinical severity should trigger an individualized neuro-IR discussion rather than an automatic EVT assumption.'
  ],
  citations:['ATTENTION trial', 'BAOCHE trial', '2026 AHA/ASA AIS Guideline'],
- trap:'Sending the patient down the vertigo or inner ear pathway because NIHSS is low.'
 },
 
 {id:'c7', n:7,
@@ -437,7 +434,6 @@ const CASES = [
    'Do not let the NIHSS decide whether a deficit is disabling. The treatment question is whether the new deficit meaningfully prevents the patient from performing normal activities or work; then apply the thrombolysis criteria and local stroke protocol.'
  ],
  citations:['ARAMIS trial', 'AHA DAPT evidence review', 'INSPIRES trial', 'TEMPO-2 trial'],
- trap:'Calling it minor stroke and not treating because NIHSS is 1.'
 },
 
 {id:'c8', n:8,
@@ -464,7 +460,7 @@ const CASES = [
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','collateral'],
- syndromeStory:'Concordant left dominant hemispheric cortical syndrome with a concordant left M1 occlusion on CTA. The catch is BP 212/118. The job is to lower BP just enough to be eligible for reperfusion (under 185/110), not to normalize it. Aggressive BP lowering before reperfusion can reduce collateral perfusion and worsen outcome. After successful EVT, the standard ceiling stays at or under 180/105, and pushing SBP below 140 is harmful (Class III).',
+ syndromeStory:'Concordant left dominant hemispheric cortical syndrome with a concordant left M1 occlusion on CTA. Blood pressure is 212/118. The treatment question is whether it can be lowered enough to meet reperfusion eligibility without attempting rapid normalization. Aggressive BP lowering before reperfusion can reduce collateral perfusion and worsen outcome. After successful EVT, the standard ceiling stays at or under 180/105, and pushing SBP below 140 is harmful (Class III).',
  teach:[
    'Before TNK, BP must be below 185/110. After IV thrombolysis, maintain BP below 180/105 for at least 24 hours; after EVT, a ceiling at or below 180/105 is reasonable.',
    'Do not try to normalize BP before reperfusion. Excessive early reduction can compromise collateral flow.',
@@ -473,7 +469,6 @@ const CASES = [
    'After EVT, the patient gets BP management in the neuro-ICU.'
  ],
  citations:['2026 AHA/ASA AIS Guideline', 'Acute stroke BP comparative review (2025/2026)', 'ESO blood pressure guideline for AIS / MT'],
- trap:'Trying to normalize BP before EVT (delays reperfusion, hurts collaterals), then continuing aggressive lowering after EVT.'
 },
 
 {id:'c9', n:9,
@@ -500,7 +495,7 @@ const CASES = [
  },
  pathway:'hemorrhage',
  ideal:['glucose','bp','nihss','ncct','collateral'],
- syndromeStory:'Sudden worst headache of his life, vomiting, and left-sided weakness. CT head shows a right basal ganglia hemorrhage of about 25 mL. This is a hemorrhage pathway, not a reperfusion pathway. Current ICH BP guidance is smooth, sustained reduction of SBP to 130 to under 140, avoiding overshoot below 130. No anticoagulation history here, so no reversal is needed. NSGY consult, NICU disposition.',
+ syndromeStory:'Sudden worst headache of his life, vomiting, and left-sided weakness. CT head shows a right basal ganglia hemorrhage of about 25 mL. The CT establishes intracerebral hemorrhage and shifts management away from ischemic reperfusion. Current ICH BP guidance is smooth, sustained reduction of SBP to 130 to under 140, avoiding overshoot below 130. No anticoagulation history here, so no reversal is needed. Neurosurgical and neurocritical-care evaluation follow from the hemorrhage phenotype and clinical severity.',
  teach:[
    'Recognize the switch point immediately: headache, vomiting, focal deficit, and ICH on CT means hemorrhage pathway, not reperfusion pathway.',
    'Aim for rapid, smooth, sustained BP control rather than dramatic swings.',
@@ -508,7 +503,6 @@ const CASES = [
    'Caveat for very high presenting SBP: in ATACH-2 patients with initial SBP at or above 220, intensive lowering was associated with more neurologic deterioration and more kidney injury. Avoid aggresively lowering the pressure down.'
  ],
  citations:['INTERACT2 trial', 'ATACH-2 trial', 'ATACH-2 subgroup analysis (SBP ≥ 220)', 'Acute stroke BP comparative review (2025/2026)'],
- trap:'Treating ICH BP like a generic hypertensive emergency and overshooting below 130. Importing reperfusion BP logic onto ICH.'
 },
 
 {id:'c10', n:10,
@@ -544,7 +538,6 @@ const CASES = [
    'Do not make the opposite mistake either: seizure at onset does not exclude stroke. Use CT and CTA to rule out hemorrhage and LVO, and use EEG when persistent altered mentation raises concern for ongoing ictal activity.'
  ],
  citations:['2026 AHA/ASA AIS Guideline'],
- trap:'Letting vascular risk factors erase the seizure clues, or assuming seizure excludes stroke.'
 }
 ,
 
@@ -592,11 +585,10 @@ const CASES = [
    'Use LP when the unresolved question is mechanism rather than level: CSF can support inflammatory or infectious disease, but it must be interpreted with the tempo, examination, and MRI rather than treated as a stand-alone answer.'
  ],
  citations:['WFNS Spine Committee recommendations on cauda equina/conus syndromes (2024)','Tan & Manohararaj, isolated conus medullaris infarction (2021)'],
- trap:'Prematurely deciding that whichever abnormal MRI was found first must explain the weakness.'
 },
 
 {id:'c12', n:12,
- arrival:'79-year-old woman develops intermittent confusion on hospital day 4. Nursing reports that she was sleepy and inattentive this morning, more conversant around noon, and confused again later in the afternoon. A stroke code is activated because the change seems abrupt.',
+ arrival:'79-year-old woman develops intermittent confusion on hospital day 4. Nursing reports that she was sleepy and inattentive this morning, more conversant around noon, and confused again later in the afternoon. Neurology is consulted because the change seems abrupt.',
  activation:'Fluctuating confusion and decreased responsiveness',
  context:'Older hospitalized adult with substantial cerebrovascular disease and chronic small-vessel ischemic change, prolonged hospitalization for systemic illness, poor sleep, pain, reduced mobility, renal dysfunction, anemia, and several medication changes. Family says she was cognitively independent before admission but becomes confused easily when ill.',
  presentation:'Her mental status has waxed and waned over hours. At the time of neurology evaluation she is awake and conversational but easily loses the thread of conversation. No persistent unilateral weakness, gaze deviation, aphasia, or visual field deficit has been reported.',
@@ -634,7 +626,6 @@ const CASES = [
    'Good reasoning is not synonymous with more testing. Additional imaging or EEG should answer a clinical question created by the phenotype or trajectory.'
  ],
  citations:['Oh et al., JAMA review of delirium in older persons (2017)','Inouye et al., delirium in elderly people (Lancet 2013)','Ahmed et al., delirium risk factors meta-analysis (Age and Ageing 2014)'],
- trap:'Assuming that every acute change in a patient with vascular disease requires a hidden focal lesion—or, conversely, declaring delirium without first establishing an acute fluctuating attentional syndrome and checking for focal findings.'
 }
 ,
 {id:'c13', n:13,
@@ -651,7 +642,7 @@ const CASES = [
   meds:'No recent sedative escalation or new dopamine-blocking medication. Medication review does not provide a clear toxic explanation for the fluctuating bulbar symptoms.',
   focused_exam:'Mental status and language are normal. Sensation is intact. Reflexes are preserved. There is no limb ataxia. On brief testing, limb strength is near full. Facial activation is mildly weak but symmetric. Speech is mildly dysarthric without aphasia.',
   fatigability_exam:'After sustained upgaze, mild bilateral ptosis becomes more apparent. Repeated eyelid closure and prolonged smiling reveal increasing facial weakness. During continuous counting, speech becomes progressively more nasal and imprecise, then partially improves after a short rest. Repeated shoulder abduction produces mild proximal fatigability.',
-  respiratory_bulbar_exam:'She can manage secretions and remains able to speak in full sentences, but chewing and speech fatigue are objective. Bedside respiratory assessment does not show overt respiratory failure. Because bulbar weakness can evolve, respiratory and swallowing function require serial reassessment rather than a one-time reassuring examination.',
+  respiratory_bulbar_exam:'She can manage secretions and speak in full sentences, with no accessory-muscle use or paradoxical breathing. Cough is effective. A baseline NIF and vital capacity are obtained and are not severely reduced. These measurements are effort- and technique-dependent and do not replace the examination. The useful information is the trend: repeat NIF/vital capacity together with speech endurance, neck flexion, cough, secretion handling, swallowing, work of breathing, and gas exchange if the clinical picture worsens.',
   nihss:'There is no coherent focal NIHSS syndrome. Dysarthria is present, but language, visual fields, gaze, sensation, and limb strength are otherwise nonfocal on brief testing.',
   mri:'Brain MRI shows no acute infarct or brainstem lesion that explains the fluctuating bulbar pattern.',
   labs:'Routine metabolic studies do not explain the symptoms; CK is not markedly elevated.',
@@ -674,10 +665,9 @@ const CASES = [
    'Dysarthria is a symptom, not a localization. Language, cranial nerves, sensory findings, reflexes, fluctuation, and provocative testing determine whether the syndrome is central, neuromuscular, or systemic.',
    'The bedside examination should create a testable hypothesis before antibody testing or electrophysiology is ordered.',
    'AChR/MuSK serology and electrodiagnostic testing can confirm MG, but a negative single test does not substitute for reassessing a convincing clinical phenotype.',
-   'Bulbar weakness changes urgency because swallowing and respiratory function can worsen even when limb strength and a single respiratory assessment look relatively preserved.'
+   'Bulbar weakness changes urgency. NIF and vital capacity are useful serial respiratory measures, but no single value reliably predicts decompensation; trend them with the history and bedside examination, especially speech endurance, neck flexion, cough, secretion handling, swallowing, and work of breathing.'
  ],
- citations:['Juel, Autoimmune Myasthenia Gravis, Continuum (2025)','Guidon et al., Myasthenia Gravis Core Exam (2021)','International consensus guidance for management of myasthenia gravis','Tankisi et al., electrodiagnostic criteria for neuromuscular transmission disorders (2025)'],
- trap:'Treating "fatigue" as either diagnostic of myasthenia or too nonspecific to matter. The useful step is to test whether the patient has objective fatigable weakness and then localize the motor syndrome.'
+ citations:['Juel, Autoimmune Myasthenia Gravis, Continuum (2025)','McKenzie et al., acute neuromuscular respiratory failure risk stratification (Crit Care Med 2024)','Association of British Neurologists autoimmune MG guideline update (2025)','Tankisi et al., electrodiagnostic criteria for neuromuscular transmission disorders (2025)'],
 },
 
 {id:'c14', n:14,
@@ -721,7 +711,6 @@ const CASES = [
    'The diagnostic sequence is phenotype → structural context → targeted EEG question → serial electroclinical reassessment, not "abnormal MRI therefore explained."'
  ],
  citations:['Herman et al., ACNS consensus statement on continuous EEG indications (2015)','Marcuse et al., Nonconvulsive status epilepticus in patients with brain tumors (2014)','ASCO/SNO endorsement of CNS brain metastasis supportive-care guidelines (2019)','Continuum review of status epilepticus / EEG in persistent altered consciousness'],
- trap:'Anchoring on the dramatic vasogenic edema as a complete explanation for altered mental status and failing to ask whether the fluctuation itself implies a superimposed cortical process.'
 }
 
 
@@ -757,6 +746,7 @@ CASES.forEach(c=>Object.assign(c,CASE_BEDSIDE[c.id]||{}));
 // ============================================================
 const CASE_DESIGN = {
   c1:{
+    availableActions:['nihss','ncct','cta','collateral','reexam'],
     clinicalQuestion:'Is this a disabling acute ischemic stroke for which reperfusion should proceed now?',
     finalManagementLabel:'Acute treatment decision',
     debriefDecisionTitle:'Acute stroke decision',
@@ -770,15 +760,16 @@ const CASE_DESIGN = {
     }
   },
   c2:{
+    availableActions:['nihss','ncct','cta','ctp','mri','reexam'],
     clinicalQuestion:'With an unknown onset, what information can establish whether reperfusion still has a biologic target?',
     finalManagementLabel:'Reperfusion decision',
     debriefDecisionTitle:'Unknown-onset stroke: what does imaging add?',
     activeQuestions:{
-      ctp:{prompt:'What question are you trying to answer?',options:[
+      ctp:{prompt:'Why are you ordering CTP?',options:[
         {label:'Is there salvageable tissue that could make extended-window reperfusion reasonable?',correct:true},
         {label:'What exact clock time did the stroke begin?'},
         {label:'Does the patient definitely have a cortical syndrome?'}],
-        feedback:'Perfusion imaging does not recover the missing clock time. It asks a tissue question: whether there is a favorable core/penumbra pattern that could change an extended-window reperfusion decision.'},
+        feedback:'CTP answers a tissue question, not a clock question. In the 2026 AHA/ASA guideline, perfusion imaging can be useful for extended-window IV thrombolysis and can assist EVT evaluation when immediately available. For many proximal LVO patients, however, treatment eligibility can be established from the examination, CT/CTA, and ASPECTS; CTP should answer a tissue question rather than function as a routine gate.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there an imaging mismatch that can help select an unknown-onset stroke for treatment?',correct:true},
         {label:'Can MRI prove the patient was normal at 10 PM?'},
@@ -787,26 +778,37 @@ const CASE_DESIGN = {
     }
   },
   c3:{
+    availableActions:['nihss','ncct','cta','ctp','collateral','reexam'],
     clinicalQuestion:'How much uncertainty about timing and identity can remain while still making a safe, evidence-based reperfusion decision?',
     finalManagementLabel:'Acute treatment decision',
-    debriefDecisionTitle:'Acting despite incomplete collateral'
+    debriefDecisionTitle:'Acting despite incomplete collateral',
+    activeQuestions:{
+      ctp:{prompt:'Why are you ordering CTP?',options:[
+        {label:'To characterize tissue status when the time window is uncertain and ask whether that information changes reperfusion options.',correct:true},
+        {label:'To determine the exact last-known-well time.'},
+        {label:'Because every LVO requires perfusion imaging before thrombectomy.'}],
+        feedback:'CTP characterizes core and hypoperfused tissue when that information could change treatment selection. It does not reconstruct onset, and it should not delay EVT when the examination, CT/CTA, and ASPECTS already establish an appropriate pathway.'}
+    }
   },
   c4:{
+    availableActions:['nihss','ncct','cta','ctp','reexam'],
     clinicalQuestion:'Does a large established infarct burden make thrombectomy futile, or is there still a reasonable EVT pathway?',
     finalManagementLabel:'Endovascular treatment decision',
     debriefDecisionTitle:'Large-core thrombectomy reasoning',
-    activeQuestions:{ctp:{prompt:'What question are you trying to answer?',options:[
+    activeQuestions:{ctp:{prompt:'Why are you ordering CTP?',options:[
       {label:'How much tissue is already infarcted and how much remains potentially salvageable?',correct:true},
       {label:'Whether the patient has neglect'},
       {label:'Whether the occlusion is in the right or left hemisphere'}],
-      feedback:'CT perfusion can refine tissue status, but it should be interpreted alongside NCCT/ASPECTS, the vascular lesion, time, and the patient—not as an automatic futility test.'}}
+      feedback:'CTP can refine core and hypoperfusion estimates, but it is not a stand-alone futility test or a universal gate to late-window proximal LVO thrombectomy. Its value is whether the tissue information changes a decision after the examination, NCCT/ASPECTS, CTA, time, and baseline are considered.'}}
   },
   c5:{
+    availableActions:['nihss','ncct','cta','reexam'],
     clinicalQuestion:'Do the crossed cranial-nerve and long-tract findings indicate a posterior-circulation vascular emergency?',
     finalManagementLabel:'Acute treatment decision',
     debriefDecisionTitle:'Posterior-circulation reperfusion reasoning'
   },
   c6:{
+    availableActions:['focused_exam','nihss','ncct','cta','mri','reexam'],
     clinicalQuestion:'Does the whole acute vestibular syndrome fit a peripheral lesion, or is there enough discordance to pursue a central vascular cause?',
     finalManagementLabel:'Acute management decision',
     debriefDecisionTitle:'Using HINTS within the syndrome, not as a shortcut',
@@ -830,6 +832,7 @@ const CASE_DESIGN = {
     }
   },
   c7:{
+    availableActions:['collateral','nihss','ncct','cta','mri','reexam'],
     clinicalQuestion:'Is a numerically minor deficit functionally disabling for this patient, and how should that change treatment?',
     finalManagementLabel:'Acute treatment decision',
     debriefDecisionTitle:'Disability is not the NIHSS score',
@@ -842,16 +845,19 @@ const CASE_DESIGN = {
     }
   },
   c8:{
+    availableActions:['bp','nihss','ncct','cta','reexam'],
     clinicalQuestion:'How should severe hypertension be handled without losing sight of an otherwise time-sensitive reperfusion candidate?',
     finalManagementLabel:'Acute treatment decision',
     debriefDecisionTitle:'Blood pressure as a treatment constraint, not a competing diagnosis'
   },
   c9:{
+    availableActions:['bp','ncct','reexam'],
     clinicalQuestion:'Does the presentation represent hemorrhage, and what immediate pathway follows once imaging establishes it?',
     finalManagementLabel:'Immediate management',
     debriefDecisionTitle:'Hemorrhage recognition and acute priorities'
   },
   c10:{
+    availableActions:['collateral','seizure_hx','nihss','ncct','cta','eeg','reexam'],
     clinicalQuestion:'Does the trajectory fit a resolving postictal deficit, persistent ischemia, or ongoing ictal activity?',
     finalManagementLabel:'Next management step',
     debriefDecisionTitle:'Serial examination as diagnostic data',
@@ -864,6 +870,7 @@ const CASE_DESIGN = {
     }
   },
   c11:{
+    availableActions:['focused_exam','collateral','mri','mri_tspine','mri_lspine','labs','emg','lp','reexam'],
     clinicalQuestion:'Which neural level—or combination of levels—best explains the bilateral leg weakness, and which test would reduce the remaining localization or etiologic uncertainty?',
     finalInterpretationLabel:'Best current neurologic model',
     finalInterpretationHelp:'A single diagnosis is not required. Choose the model that best represents the current localization and competing processes.',
@@ -905,6 +912,7 @@ const CASE_DESIGN = {
     }
   },
   c12:{
+    availableActions:['collateral','attention_exam','focused_exam','eeg','mri','reexam'],
     clinicalQuestion:'Is there a stable focal or ictal neurologic syndrome that needs targeted neurologic testing, or does the pattern cohere as diffuse fluctuating cerebral dysfunction?',
     finalInterpretationLabel:'Syndrome interpretation',
     finalManagementLabel:'What would you do now?',
@@ -933,6 +941,7 @@ const CASE_DESIGN = {
     }
   },
   c13:{
+    availableActions:['collateral','fatigability_exam','respiratory_bulbar_exam','achr_musk','rns','reexam'],
     clinicalQuestion:'Is this nonspecific fatigue with dysarthria, or is there objective fatigable weakness that localizes the syndrome to the neuromuscular junction?',
     finalInterpretationLabel:'Best current localization and syndrome',
     finalManagementLabel:'Most important next step',
@@ -942,12 +951,12 @@ const CASE_DESIGN = {
         {label:'Does sustained activation reveal objective fatigable weakness?',correct:true},
         {label:'Does the patient report feeling tired? '},
         {label:'Is dysarthria always caused by a brainstem lesion?'}],
-        feedback:'The point of the provocative examination is to convert a vague symptom into an observable physiologic pattern. Reproducible worsening with sustained activation changes the localization far more than the word "fatigue" alone.'},
+        feedback:'Provocative examination converts a vague symptom into an observable physiologic pattern. Reproducible worsening with sustained activation changes the localization far more than the word "fatigue" alone.'},
       respiratory_bulbar_exam:{prompt:'What question are you trying to answer?',options:[
         {label:'Is bulbar or respiratory weakness severe enough to change the urgency and level of monitoring?',correct:true},
         {label:'Can a normal brief limb exam exclude myasthenia? '},
         {label:'Does dysarthria severity identify the antibody subtype?'}],
-        feedback:'Bulbar symptoms are not just diagnostic clues; they are a severity question. Swallowing, secretion management, speech endurance, and respiratory function need deliberate serial assessment.'},
+        feedback:'Bulbar symptoms are also a severity question. History and serial bedside examination come first. NIF and vital capacity provide useful baseline and trend data, but they are effort- and technique-dependent and should not be treated as single pass/fail thresholds. Follow them alongside speech endurance, neck flexion, cough, secretion handling, swallowing, and work of breathing.'},
       achr_musk:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there serologic evidence supporting autoimmune myasthenia gravis?',correct:true},
         {label:'How weak is the patient right now?'},
@@ -961,6 +970,7 @@ const CASE_DESIGN = {
     }
   },
   c14:{
+    availableActions:['collateral','attention_exam','focused_exam','mri','eeg','ceeg','reexam'],
     clinicalQuestion:'Is the reduced responsiveness adequately explained by structural disease and edema, or is there ongoing cortical electrical activity that cannot be recognized from the examination alone?',
     finalInterpretationLabel:'Best current neurologic model',
     finalManagementLabel:'Most important next step',
@@ -970,7 +980,7 @@ const CASE_DESIGN = {
         {label:'Is awareness persistently depressed, or does responsiveness fluctuate over minutes?',correct:true},
         {label:'Can a single GCS-like snapshot distinguish edema from seizure?'},
         {label:'Does known metastatic disease make serial examination unnecessary?'}],
-        feedback:'The time series is the finding. Abrupt within-encounter changes in responsiveness create a different physiologic question than sustained somnolence.'},
+        feedback:'The trajectory itself is diagnostically important. Abrupt within-encounter changes in responsiveness create a different physiologic question than sustained somnolence.'},
       focused_exam:{prompt:'What question are you trying to answer?',options:[
         {label:'Do transient focal motor, ocular, or language findings accompany the fluctuations?',correct:true},
         {label:'Does the absence of dense hemiplegia exclude seizures?'},
@@ -1015,15 +1025,15 @@ const CASE_REASONING = {
     'Twenty minutes later language is intact, he is oriented to self and hospital, and right arm strength is nearly symmetric. He remains tired.',
     'A later examination shows no recurrent focal deficit. If mental status were to worsen again without convulsive activity, nonconvulsive seizure would move back up the differential.'
   ]},
-  c11:{tempo:'acute', localization:'multifocal_unclear', localizationOptions:['spinal_cord','conus_roots','pns','cortex','multifocal_unclear'], syndromeOptions:['paraparesis_mixed','aca','mimic'], hypotheses:['Spinal cord / conus process','Peripheral neuropathic or neuromuscular process','Cerebral ischemia','Inflammatory or infectious neurologic process','Critical-illness related weakness'], reexam:[
+  c11:{tempo:'acute_on_subacute', tempoOptions:['acute_on_subacute','acute','subacute','unclear'], localization:'multifocal_unclear', localizationOptions:['spinal_cord','conus_roots','pns','cortex','multifocal_unclear'], syndromeOptions:['paraparesis_mixed','aca','mimic'], hypotheses:['Spinal cord / conus process','Peripheral neuropathic or neuromuscular process','Cerebral ischemia','Inflammatory or infectious neurologic process','Critical-illness related weakness'], reexam:[
     'On repeat examination he continues to follow commands with both arms. There is now trace hip flexion bilaterally but no reliable ankle movement. Knee reflexes remain reduced and ankle reflexes absent. No definite sensory level is found.',
     'Later, proximal leg movement improves slightly while distal weakness and sensory complaints persist. The examination still does not collapse into a single clean central or peripheral localization.'
   ]},
-  c12:{tempo:'fluctuating', localization:'diffuse', localizationOptions:['diffuse','cortex','subcortical','multifocal_unclear'], syndromeOptions:['acute_confusional','mimic','dominant_mca','nondominant_mca'], hypotheses:['Multifactorial delirium','Acute ischemic stroke','Nonconvulsive seizure / status','Medication effect','Other toxic-metabolic encephalopathy'], reexam:[
+  c12:{tempo:'acute', localization:'diffuse', localizationOptions:['diffuse','cortex','subcortical','multifocal_unclear'], syndromeOptions:['acute_confusional','mimic','dominant_mca','nondominant_mca'], hypotheses:['Multifactorial delirium','Acute ischemic stroke','Nonconvulsive seizure / status','Medication effect','Other toxic-metabolic encephalopathy'], reexam:[
     'Thirty minutes later she is more attentive and answers orientation questions correctly, though she still loses track during longer tasks. There is no focal motor, language, visual, or sensory deficit.',
     'Later in the afternoon she is again drowsier and inattentive but arouses to voice and remains symmetric on focal neurologic examination.'
   ]},
-  c13:{tempo:'progressive', localization:'nmj_pns', localizationOptions:['nmj_pns','brainstem','cortex','pns','multifocal_unclear'], syndromeOptions:['fatigable_bulbar','posterior_brainstem','mimic'], hypotheses:['Neuromuscular-junction disorder','Brainstem or cortical lesion','Myopathy','Medication or toxic-metabolic process','Generalized fatigue without focal neurologic weakness'], reexam:[
+  c13:{tempo:'acute', localization:'nmj', localizationOptions:['nmj','muscle','brainstem','cortex','pns','multifocal_unclear'], syndromeOptions:['fatigable_bulbar','posterior_brainstem','mimic'], hypotheses:['Neuromuscular-junction disorder','Brainstem or cortical lesion','Myopathy','Medication or toxic-metabolic process','Generalized fatigue without focal neurologic weakness'], reexam:[
     'After several minutes of conversation, dysarthria is more apparent and mild ptosis has returned. After a brief period of rest, both improve partially.',
     'Later examination again shows preserved sensation and reflexes with reproducible facial, bulbar, and proximal fatigability rather than a fixed focal deficit.'
   ]},
