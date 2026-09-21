@@ -1,3 +1,9 @@
-Stroke Code Simulator is a simple web app that teaches neurology residents how to run stroke codes through simulation. It helps learners recognize stroke syndromes, identify what information is missing, ask for the right next data, choose the best treatment pathway, avoid common traps, and think about how to give a clear handoff to the attending, IR team, or NICU. I designed it for the reality and uncertainty of stroke codes, where the patient may be new to the system, the last known well may be unclear, the medication list may be missing, and the first story may be wrong. 
+Stroke Code Simulator is an interactive clinical-reasoning tool for neurology trainees.
 
-This project is for education only, not for real patient care. It does not replace guidelines, attending supervision, or local stroke protocols. I built it with plain HTML, CSS, and JavaScript so it stays lightweight and easy to run in a browser. In future versions, I plan to add more cases, more posterior circulation and mimic scenarios, and more messy real-world uncertainty.
+It uses evolving stroke-code cases to teach real-time neurologic reasoning under uncertainty. Learners characterize the time course, localize the syndrome, build a working differential, request additional information, repeat the neurologic examination, and update their diagnostic probabilities as new data emerge.
+
+The emphasis is not simply on identifying stroke. Many cases represent stroke mimics or competing neurologic emergencies, reflecting the reality that acute neurology consultations often begin with the question: “Could this be a stroke?”
+
+Cases emphasize localization, diagnostic updating, posterior circulation syndromes, altered mental status, seizure versus stroke, low-NIHSS disabling deficits, thrombolysis, thrombectomy, DAPT, and other common acute neurology decisions.
+
+This project is for education only
