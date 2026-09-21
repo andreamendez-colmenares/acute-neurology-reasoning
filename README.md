@@ -1,58 +1,33 @@
 # Acute Neurology Reasoning
 
-**Acute Neurology Reasoning** is an educational case-based tool for neurology trainees. The goal is not to reward rapid pattern recognition or force every case into a single final diagnosis. The goal is to practice a deliberate neurologic reasoning process in real time:
+**Acute Neurology Reasoning** is a case-based educational tool for neurology trainees. It is designed to practice how neurologists reason through acute consultations, not simply identify the final diagnosis.
+
+The core framework is:
 
 **How did this happen? → Where is it? → What syndrome does that produce? → What causes that syndrome in this context?**
 
-The cases are designed to make the learner use the history, clinical context, neurologic examination, time course, localization, syndrome, and evolving differential together. Some cases are straightforward. Others remain uncertain or contain competing localizations. The emphasis is on building and updating a coherent neurologic model rather than searching for a hidden diagnosis.
+Each case follows the same sequence:
 
-## Learning design
+**Understand → Frame → Gather → Update → Finalize**
 
-Each case follows the same guided sequence: **Understand → Frame → Gather → Update → Finalize**. The interface is intentionally structured so that the learner first reads the reason for consultation, context, and presentation; then creates an initial neurologic frame before requesting additional information. Subsequent history, examination findings, and tests are selected because they might change that working model. Updating is encouraged when new information matters, but diagnostic uncertainty is allowed.
+Cases may involve stroke, seizure, myelopathy, delirium, vestibular syndromes, neuromuscular disease, and other acute neurologic problems. Some have a clear answer; others intentionally preserve uncertainty or competing localizations.
 
-Case titles describe the presenting problem rather than the diagnosis or localization. The goal is for the learner to construct the neurologic syndrome rather than have it named in advance. The interface avoids required free-text documentation, scoring, and unnecessary confidence ratings so that the learning task remains the clinical reasoning itself.
+Important tests may ask:
 
-## Inspiration and acknowledgment
+**What question are you trying to answer?**
 
-The reasoning structure of this project is inspired by Ethan Meltzer's *How to Think Like a Neurologist: A Case-Based Guide to Clinical Reasoning in Neurology* (Oxford University Press, 2022). In particular, the book's emphasis on pace, localization, syndrome construction, clinical context, and differential diagnosis strongly influenced how these cases are organized.
+The goal is to encourage targeted data gathering and active updating of the working model rather than clicking through a checklist.
 
-This project is an independent educational adaptation. It does not reproduce the book's cases or text, and it is not affiliated with or endorsed by the author or Oxford University Press.
+## Inspiration
 
-## Case development and privacy
+The project was inspired in part by Ethan Meltzer's *How to Think Like a Neurologist: A Case-Based Guide to Clinical Reasoning in Neurology*, particularly its emphasis on tempo, localization, syndrome construction, context, and differential diagnosis. This is an independent educational project and is not affiliated with the author or publisher.
 
-The cases are based on clinical experiences encountered during neurology training and have been adapted solely for education. They are not intended to reproduce any individual patient's medical record or encounter.
+## Privacy and educational use
 
-Case material is written to avoid protected health information and to follow HIPAA de-identification principles. Names, medical record numbers, exact dates, specific locations, contact information, and other direct identifiers are not included. Nonessential demographic, temporal, institutional, and clinical details may be modified, generalized, or combined across experiences to reduce the risk of re-identification. No case should be used to identify, reconstruct, or infer the identity of a real patient.
+Cases are de-identified and educationally adapted from clinical experiences. Direct identifiers are not included, and nonessential details may be generalized or altered to reduce re-identification risk.
 
-Any future case added to this repository should follow the same standard and should not contain protected health information. Institutional privacy policies and applicable law still apply if the tool is used or expanded within a clinical or academic institution.
-
-## Educational use
-
-This project is for education only. It is not a clinical decision-support system and does not replace current guidelines, local protocols, supervision, or clinical judgment.
+This tool is for education only and is not a clinical decision-support system. It does not replace supervision, clinical judgment, current guidelines, or local protocols.
 
 ## Run locally
 
-Open `index.html` in a browser, or serve the repository with any static web server. The project uses plain HTML, CSS, and JavaScript and is compatible with GitHub Pages.
-
-## Files
-
-- `index.html` — page structure
-- `styles.css` — responsive and mobile-first layout
-- `app.js` — application state and interaction logic
-- `cases.js` — case content and teaching data
-
-## Learning design in v19
-
-The case engine deliberately separates two layers:
-
-1. **Universal neurologic reasoning:** Understand → Frame → Gather → Update → Finalize. Every case asks the learner to reason through pace, localization, syndrome, differential diagnosis, and targeted data acquisition.
-2. **Case-specific clinical decisions:** after the learner frames the syndrome, the case surfaces the clinical question that actually matters in that scenario. Examples include reperfusion, disability despite low NIHSS, the role of advanced imaging, thrombectomy selection, interpretation of bedside vestibular findings, competing localizations in bilateral leg weakness, and deciding when additional neurologic testing is justified in altered mental status.
-
-Important tests may use an active-learning prompt: **“What question are you trying to answer?”** The learner predicts what the test is meant to resolve before the result is revealed. This is not scored. The goal is to practice choosing tests because they reduce a specific uncertainty rather than clicking through a generic diagnostic menu.
-
-In the bilateral-leg-weakness case, this distinction is explicit: MRI primarily tests anatomic hypotheses, EMG/NCS tests a peripheral localization/physiology hypothesis, and CSF testing addresses inflammatory or infectious mechanism. No single abnormal result is treated as self-interpreting.
-
-
-## New consult frameworks in v19
-
-Two cases extend the same reasoning architecture beyond stroke, myelopathy, and delirium. **Progressive fatigue and slurred speech** asks the learner to distinguish nonspecific fatigue from objective neuromuscular fatigability through a deliberately provocative examination before using serology and electrodiagnostics. **Increasing confusion in a patient with metastatic cancer** asks whether a dramatic structural abnormality fully explains the phenotype or whether fluctuating awareness should trigger an EEG question; the learner then decides when continuous EEG adds information beyond a short recording. Both cases use the active-learning prompt **"What question are you trying to answer?"** before key tests or examination maneuvers.
+Open `index.html` in a browser. The project uses plain HTML, CSS, and JavaScript and can be deployed with GitHub Pages.
