@@ -1,6 +1,6 @@
 "use strict";
 
-const KEY = "acute_neurology_reasoning_v19";
+const KEY = "acute_neurology_reasoning_v21";
 const ONBOARD_KEY = "acute_neurology_reasoning_onboarded";
 const THEMES = {
   all:"All presentations",
@@ -73,7 +73,7 @@ function renderHome(app){
     <section class="hero minimal-home">
       <h1>ACUTE NEUROLOGY REASONING</h1>
       <p>Interactive cases for practicing neurologic reasoning in acute consultation.</p>
-      <div class="home-sequence" aria-label="Case workflow"><span>Understand</span><i>→</i><span>Frame</span><i>→</i><span>Gather</span><i>→</i><span>Update</span><i>→</i><span>Finalize</span></div>
+      <div class="home-sequence" aria-label="Case workflow"><span>See the patient</span><i>→</i><span>Frame</span><i>→</i><span>Clarify</span><i>→</i><span>Update</span><i>→</i><span>Finalize</span></div>
       <div class="home-cta"><button class="primary" id="randomCase">Start a case</button><button class="secondary" id="resumeCase" ${S.caseId?'':'hidden'}>Resume case</button><button class="ghost" id="howItWorks">How it works</button></div>
     </section>
     <div class="home-toolbar">
@@ -108,9 +108,9 @@ function caseName(c){
 }
 function openOnboardingSheet(markSeen=true){
   showSheet("","How each case works",`<div class="onboard-steps">
-    <div><b>1</b><span><strong>Understand</strong><small>Read the reason for consultation, context, and presentation.</small></span></div>
+    <div><b>1</b><span><strong>See the patient</strong><small>Read the presentation, establish baseline, and inspect the neurologic examination.</small></span></div>
     <div><b>2</b><span><strong>Frame</strong><small>Define pace, localization, syndrome, and an initial differential.</small></span></div>
-    <div><b>3</b><span><strong>Gather</strong><small>Choose targeted history, examination, or tests that could change your model.</small></span></div>
+    <div><b>3</b><span><strong>Clarify</strong><small>Examine further, ask focused questions, or order a test only when it addresses a specific uncertainty.</small></span></div>
     <div><b>4</b><span><strong>Update</strong><small>Revise the model when new information meaningfully changes it.</small></span></div>
     <div><b>5</b><span><strong>Finalize</strong><small>State your working interpretation and management. Uncertainty is allowed.</small></span></div>
   </div><div class="sheet-actions"><button class="primary" id="beginCase">${S.view==="case"?'Begin case':'Close'}</button></div>`);
@@ -128,50 +128,95 @@ function dataCount(){ return S.actionsTaken.length + S.reexamCount; }
 function hasNewData(){ return S.modelFramed && dataCount()>S.lastModelUpdateDataCount; }
 function canFinalize(){ return S.modelFramed && dataCount()>0; }
 function workflowHTML(){
-  const gathered=dataCount()>0, updated=S.reasoningUpdates.length>0;
+  const clarified=dataCount()>0, updated=S.reasoningUpdates.length>0;
   let active=0;
   if(!S.modelFramed) active=0;
-  else if(!gathered) active=2;
+  else if(!clarified) active=2;
   else if(hasNewData()) active=3;
   else active=2;
   const steps=[
-    {label:"Understand",done:S.modelFramed},
+    {label:"Patient",done:S.modelFramed},
     {label:"Frame",done:S.modelFramed},
-    {label:"Gather",done:gathered},
+    {label:"Clarify",done:clarified},
     {label:"Update",done:updated&&!hasNewData()},
     {label:"Finalize",done:false}
   ];
   return `<div class="workflow-strip">${steps.map((x,i)=>`<div class="workflow-step ${x.done?'done':''} ${i===active?'active':''}"><span>${x.done?'✓':i+1}</span><b>${x.label}</b></div>`).join('')}</div>`;
 }
+function clarifyButtonsHTML(includeFinalize=false){
+  return `<div class="clarify-actions">
+    <button class="primary clarify-exam" id="nextExamine"><span>Examine further</span><small>Refine localization or characterize the syndrome</small></button>
+    <button class="secondary" id="nextAsk"><span>Ask</span><small>Clarify history, baseline, or trajectory</small></button>
+    <button class="secondary" id="nextTest"><span>Test</span><small>Resolve a specific diagnostic or management uncertainty</small></button>
+    ${includeFinalize?'<button class="ghost" id="nextFinalize">Finalize assessment</button>':''}
+  </div>`;
+}
 function nextStepHTML(){
-  if(!S.modelFramed) return `<section class="next-step-card"><div><div class="eyebrow">Start here</div><h2>Frame the neurologic problem</h2><p>Use only what is available now. Define the pace, localization, syndrome, and initial differential before gathering more data.</p></div><button class="primary" id="nextFrame">Frame the syndrome</button></section>`;
-  if(dataCount()===0) return `<section class="next-step-card"><div><div class="eyebrow">Next step</div><h2>Test your working model</h2><p>Choose targeted history, examination, or testing that could meaningfully change the localization or differential.</p></div><button class="primary" id="nextGather">Gather data</button></section>`;
-  if(hasNewData()) return `<section class="next-step-card"><div><div class="eyebrow">New information</div><h2>Does this change your model?</h2><p>Update the differential if the new finding changes its relative likelihood. Revise the full frame if localization or syndrome has changed.</p></div><div class="next-step-actions"><button class="primary" id="nextUpdate">Update model</button><button class="secondary" id="nextGather">Gather more data</button>${canFinalize()?'<button class="ghost" id="nextFinalize">Finalize instead</button>':''}</div></section>`;
-  return `<section class="next-step-card"><div><div class="eyebrow">Working model updated</div><h2>Continue or finalize</h2><p>Gather more information if it could change your model. If the assessment is sufficiently developed, finalize it.</p></div><div class="next-step-actions"><button class="secondary" id="nextGather">Gather more data</button>${canFinalize()?'<button class="primary" id="nextFinalize">Finalize assessment</button>':''}</div></section>`;
+  if(!S.modelFramed) return `<section class="next-step-card"><div><div class="eyebrow">From the bedside</div><h2>Frame the neurologic problem</h2><p>Use the presentation, baseline, and raw examination findings. Define pace, localization, syndrome, and an initial differential before seeking more information.</p></div><button class="primary" id="nextFrame">Frame the problem</button></section>`;
+  if(dataCount()===0) return `<section class="next-step-card"><div><div class="eyebrow">Clarify the model</div><h2>What uncertainty matters now?</h2><p>Examine further first when the bedside examination can answer the question. Use history or testing when they address a specific unresolved point.</p></div>${clarifyButtonsHTML(false)}</section>`;
+  if(hasNewData()) return `<section class="next-step-card"><div><div class="eyebrow">New information</div><h2>What changed?</h2><p>Update the model if the new observation meaningfully changes localization, syndrome, or the relative likelihood of your hypotheses.</p></div><div class="next-step-actions"><button class="primary" id="nextUpdate">Update model</button>${clarifyButtonsHTML(canFinalize())}</div></section>`;
+  return `<section class="next-step-card"><div><div class="eyebrow">Model updated</div><h2>What still needs clarification?</h2><p>Continue only if another bedside maneuver, question, or test could change the model or the clinical decision.</p></div>${clarifyButtonsHTML(canFinalize())}</section>`;
 }
 function wireNextStep(){
   const f=$("#nextFrame"); if(f)f.onclick=()=>openModelSheet(true);
-  const g=$("#nextGather"); if(g)g.onclick=()=>openSheet("gather");
+  const e=$("#nextExamine"); if(e)e.onclick=()=>openSheet("examine");
+  const a=$("#nextAsk"); if(a)a.onclick=()=>openSheet("ask");
+  const t=$("#nextTest"); if(t)t.onclick=()=>openSheet("test");
   const u=$("#nextUpdate"); if(u)u.onclick=openUpdateSheet;
   const z=$("#nextFinalize"); if(z)z.onclick=openFinalizeSheet;
 }
-
+function baselineText(c){
+  return S.revealed.baseline || c.baseline || "Not yet established.";
+}
+function examSection(label,text){
+  if(!text) return "";
+  return `<div class="exam-row"><span>${htmlSafe(label)}</span><p>${htmlSafe(text)}</p></div>`;
+}
+function additionalExamHTML(c){
+  const ids=['focused_exam','attention_exam','fatigability_exam','respiratory_bulbar_exam'];
+  const items=ids.filter(id=>S.revealed[id]).map(id=>{
+    const a=findAction(id); return `<div class="exam-update"><b>${htmlSafe(a?a.label:'Additional examination')}</b><p>${S.revealed[id]}</p></div>`;
+  });
+  if(S.reexamCount){
+    const repeats=S.timeline.filter(x=>x.type==='Re-examination');
+    repeats.forEach(x=>items.push(`<div class="exam-update"><b>${htmlSafe(x.title)}</b><p>${x.text}</p></div>`));
+  }
+  return items.length?`<div class="exam-updates"><div class="eyebrow">Additional examination findings</div>${items.join('')}</div>`:'';
+}
+function neurologicExamHTML(c){
+  const x=c.initialExam||{};
+  return `<section class="neurologic-exam-card">
+    <div class="exam-head"><div><div class="eyebrow">Neurologic examination</div><h2>Initial bedside examination</h2></div>${S.modelFramed?'<button class="primary compact" id="examFurtherTop">Examine further</button>':''}</div>
+    <div class="exam-grid">
+      ${examSection('Mental status',x.mental)}
+      ${examSection('Cranial nerves',x.cranial)}
+      ${examSection('Motor',x.motor)}
+      ${examSection('Sensory',x.sensory)}
+      ${examSection('Coordination',x.coordination)}
+      ${examSection('Reflexes',x.reflexes)}
+      ${examSection('Gait',x.gait)}
+    </div>
+    ${additionalExamHTML(c)}
+  </section>`;
+}
 function renderCase(app,c){
   const r=reasoningFor(c);
   app.innerHTML=`<section class="case-flow">
     ${workflowHTML()}
-    <div class="patient-banner">
+    <section class="patient-summary">
       <div class="case-kicker">Case ${c.n}</div>
       <div class="activation-line"><span>Reason for consultation</span><strong>${htmlSafe(c.activation||caseName(c))}</strong></div>
-      <div class="context-line"><span>Context</span><p>${htmlSafe(c.context||"")}</p></div>
       <div class="presentation-line"><span>Presentation</span><p>${htmlSafe(c.presentation||c.arrival)}</p></div>
-    </div>
+      <div class="case-context-line"><span>Relevant context</span><p>${htmlSafe(c.context||'')}</p></div>
+      <div class="baseline-line"><span>Baseline</span><p>${htmlSafe(baselineText(c))}</p></div>
+    </section>
+    ${neurologicExamHTML(c)}
     ${S.modelFramed && c.clinicalQuestion?`<section class="clinical-question-card"><div class="eyebrow">Clinical question</div><p>${htmlSafe(c.clinicalQuestion)}</p></section>`:''}
     ${nextStepHTML()}
     ${S.modelFramed?`<section class="case-body">
       <div class="timeline-panel">
-        <div class="timeline-head"><h2>Clinical timeline</h2></div>
-        <div class="timeline">${S.timeline.map(renderEvent).join('')}</div>
+        <div class="timeline-head"><h2>New information</h2></div>
+        <div class="timeline">${S.timeline.length?S.timeline.map(renderEvent).join(''):'<p class="timeline-empty">No additional information gathered yet.</p>'}</div>
       </div>
       <aside class="workspace-side">
         <div class="panel model-panel">
@@ -182,10 +227,11 @@ function renderCase(app,c){
     </section>`:''}
   </section>`;
   const edit=$("#editModel"); if(edit)edit.onclick=()=>openModelSheet(false);
+  const eTop=$("#examFurtherTop"); if(eTop)eTop.onclick=()=>openSheet("examine");
   wireNextStep();
 }
 
-function renderEvent(e){ return `<article class="event ${e.kind||''}"><div class="event-meta"><span class="event-time">${htmlSafe(e.time)}</span><span class="event-type">${htmlSafe(e.type)}</span></div><h3>${htmlSafe(e.title)}</h3><p>${e.text||''}</p></article>`; }
+function renderEvent(e){ return `<article class="event ${e.kind||''}"><div class="event-meta"><span class="event-type">${htmlSafe(e.type)}</span></div><h3>${htmlSafe(e.title)}</h3><p>${e.text||''}</p></article>`; }
 function workingModelHTML(r){
   if(!S.modelFramed) return `<p class="empty-model">Not yet framed.</p>`;
   const rows=[
@@ -198,10 +244,9 @@ function workingModelHTML(r){
 }
 
 function openSheet(kind){
-  if(kind==="gather") return openActionSheet("Gather data",[["history","Ask"],["bedside","Examine"],["imaging","Imaging"],["other","Other tests / resources"]]);
   if(kind==="ask") return openActionSheet("Ask",[["history","History and collateral"]]);
-  if(kind==="examine") return openActionSheet("Examine",[["bedside","Bedside examination"]]);
-  if(kind==="test") return openActionSheet("Tests",[["imaging","Imaging"],["other","Other tests / resources"]]);
+  if(kind==="examine") return openActionSheet("Examine further",[["bedside","Targeted bedside examination"]]);
+  if(kind==="test") return openActionSheet("Test",[["imaging","Imaging"],["other","Other tests / resources"]]);
 }
 function showSheet(eyebrow,title,html){
   $("#sheetEyebrow").textContent=eyebrow||""; $("#sheetTitle").textContent=title; $("#sheetBody").innerHTML=html; const d=$("#sheet"); if(!d.open)d.showModal();
@@ -211,7 +256,10 @@ function closeSheet(){ const d=$("#sheet"); if(d.open)d.close(); }
 function openActionSheet(title,sections){
   const c=getCase();
   const html=sections.map(([key,label])=>{
-    const available=ACTIONS[key].filter(a=>Object.prototype.hasOwnProperty.call(c.r,a.id) || a.id==="reexam");
+    const available=ACTIONS[key].filter(a=>{
+      if(a.id==="nihss" && !(c.strokeTools||[]).includes("nihss")) return false;
+      return Object.prototype.hasOwnProperty.call(c.r,a.id) || a.id==="reexam";
+    });
     if(!available.length) return "";
     return `<section class="sheet-section"><h3>${label}</h3><div class="action-list">${available.map(a=>actionButtonHTML(a,c)).join('')}</div></section>`;
   }).join('');
@@ -219,9 +267,10 @@ function openActionSheet(title,sections){
   $("#sheetBody").querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>doAction(b.dataset.action));
 }
 function actionButtonHTML(a,c){
-  const used=!a.repeatable&&S.actionsTaken.includes(a.id); const available=Object.prototype.hasOwnProperty.call(c.r,a.id) || a.id==="reexam";
+  const used=!a.repeatable&&S.actionsTaken.includes(a.id); const available=(a.id!=="nihss" || (c.strokeTools||[]).includes("nihss")) && (Object.prototype.hasOwnProperty.call(c.r,a.id) || a.id==="reexam");
   const purpose=(c.actionPurpose&&c.actionPurpose[a.id]) || ACTION_PURPOSE[a.id] || "";
-  return `<button class="action-card ${used?'used':''}" data-action="${a.id}" ${used||!available?'disabled':''}><b>${a.label}</b>${used?'<small>Already reviewed</small>':(!available?'<small>Not available in this case</small>':(purpose?`<small>${htmlSafe(purpose)}</small>`:''))}</button>`;
+  const label=(c.actionLabel&&c.actionLabel[a.id]) || a.label;
+  return `<button class="action-card ${used?'used':''}" data-action="${a.id}" ${used||!available?'disabled':''}><b>${htmlSafe(label)}</b>${used?'<small>Already reviewed</small>':(!available?'<small>Not available in this case</small>':(purpose?`<small>${htmlSafe(purpose)}</small>`:''))}</button>`;
 }
 function doAction(id){
   if(id==="reexam") return doReexam();
@@ -242,7 +291,7 @@ function openQuestionBeforeAction(id,q){
     <div class="choice-list active-question-options">${(q.options||[]).map((opt,i)=>`<button type="button" class="choice-option active-question-option" data-qopt="${i}"><b>${htmlSafe(opt.label||opt)}</b>${opt.desc?`<span>${htmlSafe(opt.desc)}</span>`:''}</button>`).join('')}</div>
     <div id="questionFeedback"></div>
     <div class="sheet-actions"><button class="secondary" id="cancelQuestion">Back</button><button class="primary" id="revealQuestionResult" disabled>Reveal ${htmlSafe(a?a.label:'result')}</button></div>`);
-  $("#cancelQuestion").onclick=()=>{closeSheet();openSheet("gather");};
+  $("#cancelQuestion").onclick=()=>{closeSheet(); const type=actionType(id); openSheet(type==="Examination"?"examine":(type==="History"?"ask":"test"));};
   $("#sheetBody").querySelectorAll("[data-qopt]").forEach(b=>b.onclick=()=>{
     $("#sheetBody").querySelectorAll("[data-qopt]").forEach(x=>x.classList.remove("selected")); b.classList.add("selected");
     const idx=Number(b.dataset.qopt); const opt=(q.options||[])[idx]||{}; S.questionAnswers[`${getCase().id}:${id}`]=idx; save();
@@ -263,27 +312,46 @@ function openModelSheet(first){
   const c=getCase(), r=reasoningFor(c); if(!c)return;
   const locs=(r.localizationOptions||LOCALIZATIONS.map(x=>x.id)).map(id=>LOCALIZATIONS.find(x=>x.id===id)).filter(Boolean);
   const syns=(r.syndromeOptions||SYNDROMES.map(x=>x.id)).map(id=>SYNDROMES.find(x=>x.id===id)).filter(Boolean);
-  showSheet("",first?"Frame the syndrome":"Working model",`
-    <section class="sheet-section"><h3>How did this happen?</h3><div class="choice-list">${TEMPOS.map(x=>radioHTML("tempo",x.id,x.title,x.desc,S.tempo)).join('')}</div></section>
-    <section class="sheet-section"><h3>Where is it?</h3><div class="choice-list">${locs.map(x=>radioHTML("localization",x.id,x.title,x.desc,S.localization)).join('')}</div></section>
-    <section class="sheet-section"><h3>What syndrome does that produce?</h3><div class="choice-list">${syns.map(x=>radioHTML("syndrome",x.id,x.title,x.desc,S.syndrome)).join('')}</div></section>
-    <section class="sheet-section"><h3>What causes that syndrome in this context?</h3>${probBoardHTML(r.hypotheses,S.hypothesisLevels,"modelprob")}</section>
-    <div class="sheet-actions"><button class="secondary" id="cancelModel">Close</button><button class="primary" id="saveModel">Save working model</button></div>`);
-  $("#cancelModel").onclick=closeSheet;
-  $("#sheetBody").querySelectorAll("[data-prob-group]").forEach(wireProbGroup);
-  $("#saveModel").onclick=()=>{
-    const tempo=getChecked("tempo"), loc=getChecked("localization"), syn=getChecked("syndrome");
-    const levels=readProbGroups("modelprob");
-    let warn=$("#modelWarning");
-    if(!warn){ warn=document.createElement("div"); warn.id="modelWarning"; warn.className="note warning"; $("#saveModel").closest(".sheet-actions").before(warn); }
-    if(!tempo||!loc||!syn||!Object.keys(levels).length){ warn.textContent="Complete pace, localization, syndrome, and at least one differential estimate before continuing."; return; }
-    warn.remove();
-    S.tempo=tempo;S.localization=loc;S.syndrome=syn; S.hypothesisLevels={...S.hypothesisLevels,...levels};
-    const wasFramed=S.modelFramed; S.modelFramed=true;
-    if(wasFramed){S.lastModelUpdateDataCount=dataCount();S.reasoningUpdates.push({time:stamp(),levels:{...S.hypothesisLevels}});}
-    S.timeline.push({time:stamp(),type:"Reasoning",title:first?"Initial working model":"Working model revised",text:reasoningSummaryText(r),kind:"reasoning"}); save();closeSheet();render();
-  };
+  let step=0;
+  const steps=[
+    {title:'How did this happen?',help:'Choose the tempo that best describes onset and evolution.',body:()=>`<div class="choice-list">${TEMPOS.map(x=>radioHTML("tempo",x.id,x.title,x.desc,S.tempo)).join('')}</div>`},
+    {title:'Where is it?',help:'Localize from the observed neurologic examination before naming a diagnosis.',body:()=>`<div class="choice-list">${locs.map(x=>radioHTML("localization",x.id,x.title,x.desc,S.localization)).join('')}</div>`},
+    {title:'What syndrome does that produce?',help:'Build the syndrome from the pattern of observed findings.',body:()=>`<div class="choice-list">${syns.map(x=>radioHTML("syndrome",x.id,x.title,x.desc,S.syndrome)).join('')}</div>`},
+    {title:'What could cause this syndrome here?',help:'Set an initial qualitative differential. This is a working model, not a final answer.',body:()=>probBoardHTML(r.hypotheses,S.hypothesisLevels,"modelprob")}
+  ];
+  function draw(){
+    const x=steps[step];
+    showSheet(first?'Frame the problem':'Revise the model',x.title,`<div class="frame-progress"><span>${step+1} of ${steps.length}</span><div>${steps.map((_,i)=>`<i class="${i<=step?'on':''}"></i>`).join('')}</div></div><p class="section-help">${x.help}</p>${x.body()}<div id="modelWarning" class="note warning" hidden></div><div class="sheet-actions"><button class="secondary" id="frameBack" ${step===0?'disabled':''}>Back</button><button class="primary" id="frameNext">${step===steps.length-1?'Save working model':'Next'}</button></div>`);
+    $("#sheetBody").querySelectorAll("[data-prob-group]").forEach(wireProbGroup);
+    $("#frameBack").onclick=()=>{if(step>0){capture();step--;draw();}};
+    $("#frameNext").onclick=()=>{
+      const warn=$("#modelWarning");
+      if(!validateStep()){warn.hidden=false;warn.textContent='Choose an option before continuing.';return;}
+      capture();
+      if(step<steps.length-1){step++;draw();return;}
+      const levels=readProbGroups("modelprob");
+      if(!Object.keys(levels).length){warn.hidden=false;warn.textContent='Set at least one differential estimate before continuing.';return;}
+      S.hypothesisLevels=levels;
+      const wasFramed=S.modelFramed; S.modelFramed=true;
+      if(wasFramed){S.lastModelUpdateDataCount=dataCount();S.reasoningUpdates.push({time:stamp(),levels:{...S.hypothesisLevels}});}
+      save();closeSheet();render();
+    };
+  }
+  function capture(){
+    const t=getChecked("tempo"); if(t)S.tempo=t;
+    const l=getChecked("localization"); if(l)S.localization=l;
+    const y=getChecked("syndrome"); if(y)S.syndrome=y;
+    if(step===3){const levels=readProbGroups("modelprob"); if(Object.keys(levels).length)S.hypothesisLevels=levels;}
+  }
+  function validateStep(){
+    if(step===0)return !!getChecked("tempo");
+    if(step===1)return !!getChecked("localization");
+    if(step===2)return !!getChecked("syndrome");
+    return true;
+  }
+  draw();
 }
+
 function radioHTML(name,id,title,desc,selected){return `<label class="choice-option"><input type="radio" name="${name}" value="${id}" ${selected===id?'checked':''}><b>${title}</b><span>${desc}</span></label>`;}
 function getChecked(name){const el=document.querySelector(`input[name="${name}"]:checked`);return el?el.value:null;}
 function probBoardHTML(hypotheses,levels,prefix){return `<div class="prob-board">${hypotheses.map((h,i)=>`<div class="prob-group" data-prob-group="${prefix}-${i}" data-hyp="${htmlSafe(h)}"><div class="prob-label">${htmlSafe(h)}</div><div class="prob-choices">${PROB_LEVELS.map(p=>`<button type="button" class="prob-choice ${levels[h]===p.id?'selected':''}" data-level="${p.id}">${p.label}</button>`).join('')}</div></div>`).join('')}</div>`;}
@@ -310,7 +378,7 @@ function openUpdateSheet(){
   $("#saveUpdate").onclick=()=>{
     const prev={...S.hypothesisLevels}; const next={...S.hypothesisLevels}; const changes=[];
     $("#sheetBody").querySelectorAll(".update-row").forEach(row=>{const h=row.dataset.updateHyp; const dir=row.querySelector("[data-dir].selected")?.dataset.dir||"same"; if(!next[h]) next[h]="low"; const shifted=shiftLevel(next[h],dir); if(shifted!==next[h]) changes.push(`${h}: ${probLabel(next[h])} → ${probLabel(shifted)}`); next[h]=shifted;});
-    S.hypothesisLevels=next; S.lastModelUpdateDataCount=dataCount(); S.reasoningUpdates.push({time:stamp(),levels:{...next}}); S.timeline.push({time:stamp(),type:"Reasoning update",title:"Working model updated",text:changes.length?changes.join("; "):"Differential unchanged.",kind:"reasoning"}); save();closeSheet();render();
+    S.hypothesisLevels=next; S.lastModelUpdateDataCount=dataCount(); S.reasoningUpdates.push({time:stamp(),levels:{...next}}); save();closeSheet();render();
   };
 }
 
@@ -342,7 +410,7 @@ function openFactsSheet(){
 function renderDebrief(app,c){
   if(!c){S.view="home";return render();}
   const r=reasoningFor(c); const chosenPath=PATHWAYS.find(x=>x.id===S.pathwayChoice), refPath=PATHWAYS.find(x=>x.id===c.pathway);
-  const trajectory=S.reasoningUpdates.map((u,i)=>`<div class="trajectory-item"><span class="trajectory-time">${u.time}</span><div>${r.hypotheses.filter(h=>u.levels[h]).map(h=>`${htmlSafe(h)} — ${probLabel(u.levels[h])}`).join('<br>')}</div></div>`).join('');
+  const trajectory=S.reasoningUpdates.map((u,i)=>`<div class="trajectory-item"><span class="trajectory-time">Update ${i+1}</span><div>${r.hypotheses.filter(h=>u.levels[h]).map(h=>`${htmlSafe(h)} — ${probLabel(u.levels[h])}`).join('<br>')}</div></div>`).join('');
   app.innerHTML=`<section class="debrief"><div class="case-kicker">Case ${c.n}</div><h1>Debrief</h1>
     <div class="debrief-section"><h2>Clinical synthesis</h2><p>${c.syndromeStory}</p></div>
     ${trajectory?`<div class="debrief-section"><h2>Reasoning trajectory</h2><div class="trajectory-list">${trajectory}</div></div>`:''}

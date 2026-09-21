@@ -54,8 +54,7 @@ const SYNDROMES = [
 const KUC_FIELDS = [
   {id:'identity', label:'Identity'},
   {id:'lkw', label:'LKW'},
-  {id:'baseline', label:'Baseline mRS'},
-  {id:'anticoag', label:'Anticoag hx'},
+  {id:'baseline', label:'Baseline'},
   {id:'seizure', label:'Seizure hx'},
   {id:'collateral', label:'Collateral'},
   {id:'glucose', label:'Glucose'},
@@ -74,8 +73,8 @@ const ACTIONS = {
   bedside:[
     {id:'glucose', label:'Check glucose'},
     {id:'bp', label:'Repeat BP'},
-    {id:'nihss', label:'Perform NIHSS'},
-    {id:'focused_exam', label:'Focused neurologic examination'},
+    {id:'nihss', label:'Score NIHSS'},
+    {id:'focused_exam', label:'Targeted neurologic examination'},
     {id:'attention_exam', label:'Assess attention and arousal'},
     {id:'fatigability_exam', label:'Test fatigability at the bedside'},
     {id:'respiratory_bulbar_exam', label:'Assess bulbar and respiratory function'},
@@ -84,8 +83,8 @@ const ACTIONS = {
   history:[
     {id:'collateral', label:'Call collateral'},
     {id:'ems_timeline', label:'Ask EMS for timeline'},
-    {id:'meds', label:'Ask anticoag / meds'},
-    {id:'baseline', label:'Ask baseline mRS'},
+    {id:'meds', label:'Review medications'},
+    {id:'baseline', label:'Clarify baseline function'},
     {id:'seizure_hx', label:'Ask seizure history'},
     {id:'osh', label:'Search OSH records'}
   ],
@@ -104,8 +103,7 @@ const ACTIONS = {
     {id:'lp', label:'Consider CSF studies'},
     {id:'achr_musk', label:'Order MG antibody testing'},
     {id:'rns', label:'Order repetitive nerve stimulation'},
-    {id:'ceeg', label:'Start continuous EEG'},
-    {id:'pharmacy', label:'Call pharmacy'}
+    {id:'ceeg', label:'Start continuous EEG'}
   ]
 };
 
@@ -121,7 +119,7 @@ const ACTION_PURPOSE = {
   reexam:'Use change over time as diagnostic information.',
   collateral:'Clarify baseline, timing, trajectory, and relevant context.',
   ems_timeline:'Separate last-known-well, discovery time, and observed onset.',
-  meds:'Identify medication exposures that change diagnosis or treatment.',
+  meds:'Review medications only when a drug exposure could plausibly explain the syndrome or change the next decision.',
   baseline:'Understand pre-illness function and what the current deficit means for this patient.',
   seizure_hx:'Assess whether seizure is a plausible competing explanation.',
   osh:'Recover prior neurologic information that could change the current model.',
@@ -137,24 +135,23 @@ const ACTION_PURPOSE = {
   lp:'Ask whether CSF can clarify an inflammatory or infectious mechanism.',
   achr_musk:'Ask whether serology supports an autoimmune neuromuscular-junction disorder.',
   rns:'Ask whether there is physiologic evidence of impaired neuromuscular transmission.',
-  ceeg:'Ask whether ongoing electrographic seizures are contributing to fluctuating or persistently impaired awareness.',
-  pharmacy:'Clarify medication exposure when it changes treatment eligibility.'
+  ceeg:'Ask whether ongoing electrographic seizures are contributing to fluctuating or persistently impaired awareness.'
 };
 
 const ACTION_UPDATES = {
   glucose:['glucose'], bp:['bp'], nihss:['nihss','identity'], reexam:['nihss'],
-  collateral:['collateral','lkw','baseline','anticoag','seizure','identity'],
-  ems_timeline:['lkw'], meds:['anticoag'], baseline:['baseline'], seizure_hx:['seizure'],
-  osh:['baseline','anticoag'], ncct:['ncct'], cta:['cta'], ctp:['ctp'], mri:['mri'],
-  eeg:[], pharmacy:['anticoag']
+  collateral:['collateral','lkw','baseline','seizure','identity'],
+  ems_timeline:['lkw'], meds:[], baseline:['baseline'], seizure_hx:['seizure'],
+  osh:['baseline'], ncct:['ncct'], cta:['cta'], ctp:['ctp'], mri:['mri'],
+  eeg:[]
 };
 
 // ============================================================
 // Pathways (confidence language)
 // ============================================================
 const PATHWAYS = [
-  {id:'reperfusion', title:'Reperfusion candidate', desc:'Call attending. Acute ischemic stroke that may benefit from IV tenecteplase, mechanical thrombectomy, or both. Page IR to discuss MT if LVO present. Specifics depend on window, occlusion location, ASPECTS, and contraindications.'},
-  {id:'dapt', title:'DAPT (minor nondisabling stroke)', desc:'Call attending. Acute ischemic stroke suspected but the deficit is not disabling and NIHSS is 0 to 5. Start dual antiplatelet therapy (clopidogrel plus aspirin). No reperfusion. Full stroke workup still applies.'},
+  {id:'reperfusion', title:'Reperfusion candidate', desc:'Call attending. Acute ischemic stroke that may benefit from IV tenecteplase (TNK), endovascular thrombectomy (EVT), or both. These cases use TNK to mirror Duke practice. Page neuro-IR promptly when an EVT target is present.'},
+  {id:'dapt', title:'DAPT (minor nondisabling stroke)', desc:'Call attending. For appropriate minor noncardioembolic, nondisabling ischemic stroke in which IV thrombolysis is not indicated, short-course dual antiplatelet therapy is preferred. The exact regimen depends on timing, NIHSS, mechanism, bleeding risk, and local protocol.'},
   {id:'hemorrhage', title:'Hemorrhage pathway', desc:'Call attending. CT head shows hemorrhage. Stop reperfusion thinking. Lower SBP toward 130 to under 140 smoothly, avoid overshoot below 130. Reverse anticoagulation if applicable. Page NSGY. NICU disposition.'},
   {id:'mimic_unclear', title:'Mimic or unclear', desc:'Call attending. Stroke is not the working diagnosis or it is unclear. Treat the trigger when there is one and continue targeted evaluation when the syndrome remains unresolved.'},
   {id:'spinal_eval', title:'Continue spinal / peripheral localization', desc:'Use serial examination and targeted testing to distinguish cord, conus/roots, peripheral nerve, and multifocal processes; escalate urgently if a compressive syndrome remains plausible.'},
@@ -191,35 +188,34 @@ const CASES = [
 {id:'c1', n:1,
  arrival:'About 68 years old, brought in by EMS from a restaurant. EMS says the patient suddenly stopped talking mid meal, kept staring to the left, and stopped moving the right arm and leg. No ID on her, no family with her yet.',
  activation:'Acute language change and right-sided weakness',
- context:'Older adult; identity, baseline, medications, and collateral are initially unavailable.',
+ context:'Older adult; identity, baseline, collateral history is initially unavailable.',
  presentation:'EMS reports sudden loss of speech, persistent leftward gaze, and loss of movement in the right arm and leg while eating at a restaurant.',
- unknowns:['identity','lkw','baseline','anticoag','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
+ unknowns:['identity','lkw','baseline','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
   glucose:'Glucose 118.',
   bp:'BP 168/92.',
   nihss:'NIHSS 15. Forced left gaze (gaze 2), global aphasia (language 3), right facial droop (facial 2), dense right arm and leg plegia (arm 4, leg 4).',
-  ncct:'CT head: no hemorrhage, no early ischemic changes. Reduced ASPECTS due to early ischemic change in the left caudate and lentiform nuclei, with possible additional insular/cortical MCA involvement.',
+  ncct:'CT head: no hemorrhage. Subtle early ischemic change involves the left caudate and lentiform nuclei, with possible additional insular/cortical MCA involvement; ASPECTS is therefore reduced.',
   cta:'CTA: left M1 occlusion. Cervical vessels patent.',
   ctp:'CTP: small core, large penumbra (mismatch).',
   mri:'MRI not pursued. CTA is diagnostic.',
-  collateral:'Daughter located 8 minutes in: last seen well at 1:30 PM (about 90 minutes ago). She is independent at baseline. No seizures. No anticoagulants.',
+  collateral:'Daughter located 8 minutes in: last seen well at 1:30 PM (about 90 minutes ago). She is independent at baseline. No seizures. No known DOAC or warfarin use.',
   ems_timeline:'EMS scene call at 2 PM. Patient was symptomatic on arrival. Onset around 1:30 PM per witness.',
-  meds:'No anticoagulation. Hypertension only.',
   baseline:'mRS 0. Independent, working part time.',
   seizure_hx:'No seizure history.',
   eeg:'Not indicated for this presentation.',
   osh:'No outside hospital records.',
-  pharmacy:'Preparing TNK if needed.'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','collateral'],
  syndromeStory:'This patient suddenly stopped talking, kept staring to the left, and lost movement of the right arm and leg. That bedside pattern is a left dominant hemispheric cortical syndrome, classic for a left middle cerebral artery (M1) occlusion. On the very first non-contrast CT head, the L M1 may already show a <b>hyperdense MCA sign</b>, a bright linear thrombus visible before any contrast is given (the bright structure in the L Sylvian fissure on the Radiopaedia example). Recognizing it can strengthen the working diagnosis while IV thrombolysis eligibility is assessed; vascular imaging should proceed in parallel and should not unnecessarily delay otherwise indicated thrombolysis. CTA then confirmed the L M1 occlusion, matching the syndrome. Within 90 minutes of onset, this is a reperfusion candidate: IV tenecteplase plus paging IR to discuss MT in parallel.',
  teach:[
    'Recognize dominant hemispheric cortical dysfunction at the bedside: aphasia, forced gaze deviation toward the lesion, and dense contralateral face-arm-leg weakness point to a proximal anterior-circulation LVO until proven otherwise.',
-   'Inspect the noncontrast CT before CTA finishes. Compare both MCAs and both Sylvian fissures; a hyperdense MCA sign can support immediate reperfusion thinking even before vascular imaging returns.',
+   'Within 4.5 hours, do not delay eligible TNK for additional multimodal imaging. Noncontrast CT is used to exclude hemorrhage; CTA should proceed rapidly in parallel when LVO is suspected.',
    'Run IV thrombolysis and EVT workflows in parallel. Do not wait to see whether the lytic works before activating thrombectomy.',
-   'The 2026 AHA/ASA AIS guideline endorses either alteplase or tenecteplase within 4.5 hours; tenecteplase often simplifies workflow because it is a single bolus rather than a 60-minute infusion.',
+   'When IV thrombolysis is indicated, these cases use TNK to match Duke practice. The treatment dose used in the 2026 AHA/ASA guideline is 0.25 mg/kg (maximum 25 mg); 0.4 mg/kg is not recommended.',
+   'Before TNK, recent DOAC exposure matters. The 2026 guideline treats DOAC exposure within 48 hours as a relative contraindication: use an individualized benefit-risk assessment rather than an automatic yes/no rule.',
    'Bridging thrombolysis still matters in eligible LVO. In BRIDGE-TNK, 90-day functional independence was 53% with tenecteplase plus thrombectomy vs 44% with thrombectomy alone, with similar safety.'
  ],
  citations:['2026 AHA/ASA Acute Ischemic Stroke Guideline', '2025 TNKase FDA label', 'BRIDGE-TNK trial'],
@@ -231,7 +227,7 @@ const CASES = [
  activation:'Wake-up focal neurologic deficit',
  context:'Older adult found at home; last known well was the prior evening.',
  presentation:'At 6:30 AM she is found on the floor, mute, not responding to the right side of visual space, and not moving the right arm or leg.',
- unknowns:['lkw','baseline','anticoag','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
+ unknowns:['lkw','baseline','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
   glucose:'Glucose 124.',
@@ -240,25 +236,23 @@ const CASES = [
   ncct:'CT head: no hemorrhage, no early ischemic changes. ASPECTS 10.',
   cta:'CTA: left ICA terminus occlusion (a "T occlusion": both M1 and A1 origins involved).',
   ctp:'CTP: large mismatch, modest core with very large penumbra.',
-  mri:'MRI DWI positive, FLAIR negative (mismatch present). Per WAKE-UP trial, this pattern can support IV tenecteplase in select wake-up cases. Institutional preference.',
-  collateral:'Family says last seen normal at 10 PM (about 8.5 hours by discovery). Independent baseline. No anticoag.',
+  mri:'MRI DWI positive, FLAIR negative (mismatch present). This is an imaging-selection concept for selected unknown-onset stroke. These cases use TNK for IV thrombolysis decisions to match Duke practice.',
+  collateral:'Family says last seen normal at 10 PM (about 8.5 hours by discovery). Independent baseline. No known DOAC or warfarin use.',
   ems_timeline:'Discovery at 6:30 AM. No witness to onset.',
-  meds:'No anticoagulation. Hypertension, hyperlipidemia.',
   baseline:'mRS 0. Lives alone, independent.',
   seizure_hx:'No history.',
   eeg:'Not indicated.',
   osh:'No prior records.',
-  pharmacy:'Preparing TNK if needed.'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','ctp','collateral'],
- syndromeStory:'Found down at 6:30 AM, last seen normal at 10 PM. She is mute, is not blinking to threat on her right, and is not moving the right side. That is a dense left dominant hemispheric cortical syndrome. CTA showed a left ICA terminus (T) occlusion. Wake-up presentation is not an automatic exclusion: imaging selection drives eligibility. CTP mismatch makes her an EVT candidate, with selection out to 16 hours and in some cases 24 hours from last known well.',
+ syndromeStory:'Found down at 6:30 AM, last seen normal at 10 PM. She is mute, is not blinking to threat on her right, and is not moving the right side. That is a dense left dominant hemispheric cortical syndrome. CTA showed a left ICA terminus (T) occlusion. Wake-up presentation is not an automatic exclusion. CTA already establishes a proximal LVO, and her noncontrast CT remains favorable. Under the 2026 guideline, appropriate proximal ICA/M1 occlusions can qualify for EVT from 6 to 24 hours using clinical features plus CT/ASPECTS; CTP can add tissue information and may matter for an extended-window IV-thrombolysis question, but it should not become a mandatory hurdle to EVT.',
  teach:[
    'Recognize a wake-up stroke as an imaging-selection problem, not an automatic exclusion.',
    'Localize first, then let imaging decide treatment. Dense aphasia, hemianopia, gaze deviation, and hemiplegia still point to a left hemispheric LVO even when onset is unknown. When onset is unknown or unconfirmed, treat the case as a wake-up stroke.',
    'Separate discovery time from tissue status. Discovery at 6:30 AM does not tell you whether salvageable penumbra remains.',
-   'Use MRI DWI-FLAIR mismatch or CT/MR perfusion mismatch to decide whether reperfusion still makes sense. In WAKE-UP, alteplase improved favorable 90-day outcome (mRS 0 to 1 in 53.3% vs 41.8% with placebo) in DWI-positive / FLAIR-negative patients.',
-   'The clinical trials DAWN and DEFUSE 3 established EVT benefit in selected anterior-circulation LVO up to 24 hours from last known well, it depends on whether there is salvageable tissue on imaging.'
+   'For unknown-onset or extended-window IV thrombolysis, MRI DWI-FLAIR mismatch or perfusion mismatch can identify selected patients who may benefit. These cases use TNK for IV thrombolysis decisions to match Duke practice.',
+   'The 2026 guideline now supports EVT for proximal ICA/M1 occlusion from 6 to 24 hours in appropriate patients with NIHSS at least 6, prestroke mRS 0 to 1, and ASPECTS at least 6. Perfusion imaging can be useful, but a favorable CTP is no longer the only way to identify a late-window EVT candidate.'
  ],
  citations:['WAKE-UP trial', 'DAWN trial', 'DEFUSE 3 trial', '2026 AHA/ASA AIS Guideline'],
  trap:'Calling a wake-up stroke "outside the window" before doing imaging selection.'
@@ -269,7 +263,7 @@ const CASES = [
  activation:'Acute aphasia and right-sided weakness with unclear onset',
  context:'Adult found in public with no identification, phone, or immediately available collateral.',
  presentation:'A bystander reports a collapse at a bus stop. On EMS assessment she is not speaking and is not moving the right arm or leg; the exact onset is uncertain.',
- unknowns:['identity','lkw','baseline','anticoag','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
+ unknowns:['identity','lkw','baseline','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
   glucose:'Glucose 102.',
@@ -281,12 +275,10 @@ const CASES = [
   mri:'Not yet pursued.',
   collateral:'Initially none. Family reached at 60 minutes via phone unlock by police: family thinks last normal was around dinner, maybe 6 PM (uncertain). Independent baseline.',
   ems_timeline:'EMS arrived on scene 30 minutes ago. Bystander unsure of onset.',
-  meds:'Pharmacy: no DOAC fills locally.',
   baseline:'Family says mRS 1 (mild knee arthritis, ambulatory).',
   seizure_hx:'No known seizure history per family.',
   eeg:'Not indicated.',
   osh:'No records found in 10 minutes.',
-  pharmacy:'Preparing TNK if needed.'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','ctp','collateral'],
@@ -305,7 +297,7 @@ const CASES = [
  activation:'Left-sided weakness and neglect',
  context:'61-year-old woman found symptomatic at home; last known normal earlier that morning.',
  presentation:'Family finds left facial, arm, and leg weakness. Her eyes are directed to the right and she appears not to attend to the left side.',
- unknowns:['baseline','anticoag','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
+ unknowns:['baseline','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'nondominant_mca',
  r:{
   glucose:'Glucose 138.',
@@ -315,14 +307,12 @@ const CASES = [
   cta:'CTA: right M1 occlusion.',
   ctp:'CTP: established large core (matched) with limited penumbra. Some salvageable tissue still present.',
   mri:'Not pursued. CTP is adequate.',
-  collateral:'Last seen well at 8 AM (about 11 hours). Independent baseline (mRS 1). No seizure history. No anticoag.',
+  collateral:'Last seen well at 8 AM (about 11 hours). Independent baseline (mRS 1). No seizure history. No known DOAC or warfarin use.',
   ems_timeline:'Family found her at 7 PM in unusual state.',
-  meds:'No anticoag. Hypertension, type 2 diabetes.',
   baseline:'mRS 1.',
   seizure_hx:'No history.',
   eeg:'Not indicated.',
   osh:'No prior records relevant.',
-  pharmacy:'No DOAC fills.'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','ctp','collateral'],
@@ -332,7 +322,7 @@ const CASES = [
    'Score ASPECTS carefully but not fatalistically. Low ASPECTS predicts worse absolute prognosis, but it does not prove futility.',
    'A large core on CTP does not necessarily exclude someone from thrombectomy. Discuss with neuro-IR and your attending/fellow.',
    'Pooled lesson: a meta-analysis of six randomized large-core trials found better 90-day mRS (generalized OR 1.6) and more independent ambulation (RR 1.9), with higher symptomatic ICH (RR 1.7).',
-   'Update the framing: the 2026 AHA/ASA AIS guideline expands EVT to selected patients with large-core infarction. Standard CT/ASPECTS can be used when perfusion imaging is unavailable.'
+   'The 2026 AHA/ASA guideline gives a Class 1 recommendation for selected proximal ICA/M1 occlusions 6 to 24 hours from onset with age under 80, NIHSS at least 6, prestroke mRS 0 to 1, ASPECTS 3 to 5, and no significant mass effect. It also makes EVT reasonable in selected ASPECTS 0 to 2 patients within 6 hours.'
  ],
  citations:['SELECT2 trial', 'LASTE trial', 'Large-core RCT meta-analysis', '2026 AHA/ASA AIS Guideline'],
  trap:'Excluding from MT based on outdated ASPECTS logic.'
@@ -343,7 +333,7 @@ const CASES = [
  activation:'Somnolence, ocular findings, and right-sided weakness',
  context:'58-year-old man with abrupt symptoms at home approximately two hours before arrival.',
  presentation:'He becomes suddenly sleepy. The left eyelid droops, the left pupil appears enlarged, the left eye rests down and out, the right arm and leg are weak, and speech is slurred.',
- unknowns:['lkw','baseline','anticoag','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
+ unknowns:['lkw','baseline','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'posterior_brainstem',
  r:{
   glucose:'Glucose 112.',
@@ -353,14 +343,12 @@ const CASES = [
   cta:'CTA: basilar tip occlusion.',
   ctp:'CTP: limited utility for posterior circulation but reviewed.',
   mri:'Not pursued. CTA diagnostic.',
-  collateral:'Wife says last seen well 1.5 hours ago. mRS 0, no seizure history, no anticoag.',
+  collateral:'Wife says last seen well 1.5 hours ago. mRS 0, no seizure history, no known DOAC or warfarin use.',
   ems_timeline:'EMS scene call 1 hour ago.',
-  meds:'No anticoag.',
   baseline:'mRS 0.',
   seizure_hx:'No history.',
   eeg:'Not indicated.',
   osh:'No prior strokes.',
-  pharmacy:'No DOAC fills.'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','collateral'],
@@ -370,7 +358,7 @@ const CASES = [
    'Recognize crossed brainstem findings: ipsilateral CN III palsy with contralateral hemiparesis localizes to the midbrain and should trigger urgent posterior-circulation vascular imaging.',
    'A brainstem localization can still represent a basilar thrombectomy lesion.',
    'Use the basilar EVT trial numbers. In ATTENTION, mRS 0 to 3 at 90 days occurred in 46% vs 23% with EVT vs medical therapy, and mortality was 37% vs 55%. In BAOCHE, mRS 0 to 3 was 46% vs 24% in the 6 to 24 hour window.',
-   'The 2026 AHA/ASA AIS guideline broadens EVT eligibility to include selected posterior-circulation occlusions.'
+   'The 2026 AHA/ASA guideline gives a strong recommendation for EVT within 24 hours for basilar artery occlusion when baseline mRS is 0 to 1, NIHSS is at least 10, and pc-ASPECTS is at least 6.'
  ],
  citations:['ATTENTION trial', 'BAOCHE trial', '2026 AHA/ASA AIS Guideline'],
  trap:'Calling it "just a brainstem stroke" and missing that it could be a thrombectomy lesion. NIHSS undercounts posterior strokes.'
@@ -381,28 +369,27 @@ const CASES = [
  activation:'Acute vertigo with inability to sit unsupported',
  context:'62-year-old man with sudden, continuous vestibular symptoms beginning about 90 minutes before arrival.',
  presentation:'He has severe continuous spinning, repeated vomiting, slurred speech, and cannot sit upright without support. There is no obvious unilateral limb weakness.',
- unknowns:['lkw','baseline','anticoag','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
+ unknowns:['lkw','baseline','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'cerebellar_vestibular',
  r:{
   glucose:'Glucose 95.',
   bp:'BP 158/88.',
-  nihss:'NIHSS 4, driven by dysarthria and limb ataxia; no clear hemiparesis. He cannot sit unsupported. Eye examination while continuously symptomatic: spontaneous horizontal left-beating nystagmus; on right and left gaze it remains left-beating rather than reversing direction, with greater amplitude looking left. Alternate cover testing shows no vertical refixation. Rapid head impulse to the right produces a corrective saccade; impulse to the left does not.',
+  nihss:'NIHSS 4, driven by dysarthria and limb ataxia; no clear hemiparesis. The score does not capture his inability to sit unsupported.',
+  focused_exam:'While he remains continuously symptomatic, spontaneous horizontal nystagmus beats to the left in primary gaze and remains left-beating on gaze right and left, with greater amplitude looking left. Alternate cover testing shows no vertical refixation. A rapid head impulse to the right produces a corrective saccade; impulse to the left does not. He remains unable to sit unsupported and speech remains slurred.',
   ncct:'CT head: no hemorrhage. Posterior fossa imaging often degraded by artifact.',
   cta:'CTA: distal basilar narrowing with thrombus.',
   ctp:'CTP: limited posterior coverage.',
   mri:'MRI DWI: acute posterior circulation infarcts (cerebellar plus pontine).',
-  collateral:'Wife reports last seen well 2 hours ago. mRS 0, no seizure history, no anticoag.',
+  collateral:'Wife reports last seen well 2 hours ago. mRS 0, no seizure history, no known DOAC or warfarin use.',
   ems_timeline:'EMS arrival 90 minutes after symptom onset.',
-  meds:'No anticoag. Hypertension.',
   baseline:'mRS 0.',
   seizure_hx:'No history.',
   eeg:'Not indicated.',
   osh:'No prior strokes.',
-  pharmacy:'No DOAC fills.'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','mri','collateral'],
- syndromeStory:'Sudden severe spinning, vomiting, slurred speech, and inability to sit up. The bedside eye findings are not a classic central HINTS pattern, but the severe truncal instability and dysarthria remain discordant with a simple peripheral explanation. NIHSS is misleadingly low at 4. The bedside pattern is a cerebellar/vestibular posterior circulation syndrome, and CTA confirmed a distal basilar thrombus. MRI showed acute infarcts in cerebellum and pons. We treat the syndrome, not the score. Within 4.5 hours, this is a reperfusion candidate: IV tenecteplase plus an IR conversation about MT. NIHSS less than 10 makes basilar MT a discussion point, but the syndrome severity argues for it.',
+ syndromeStory:'Sudden severe spinning, vomiting, slurred speech, and inability to sit up. The bedside eye findings are not a classic central HINTS pattern, but the severe truncal instability and dysarthria remain discordant with a simple peripheral explanation. NIHSS is misleadingly low at 4. The bedside pattern is a cerebellar/vestibular posterior circulation syndrome, and CTA confirmed a distal basilar thrombus. MRI showed acute infarcts in cerebellum and pons. We treat the syndrome, not the score. Within 4.5 hours, the disabling posterior-circulation syndrome remains an IV TNK question. The distal basilar thrombus warrants an urgent neuro-IR discussion, but his NIHSS of 4 does not meet the strong 2026 guideline criterion for basilar EVT; the thrombectomy evidence at this severity is uncertain.',
  teach:[
    'Take the acute vestibular syndrome seriously. Do not call this peripheral vertigo until you have actively tried to prove it is peripheral.',
    'Interpret the individual bedside findings rather than accepting a label such as “HINTS positive” or “HINTS negative.” The examination only has meaning in the correct acute vestibular syndrome context.',
@@ -410,7 +397,7 @@ const CASES = [
    'Cranial nerve and oculomotor findings are not fully represented in the NIHSS.',
    'Pair syndrome recognition with vessel imaging. Sudden inability to sit upright, vomiting, dysarthria, severe truncal ataxia, and dangerous HINTS findings justify a low CTA threshold for posterior circulation stroke.',
    'Use posterior EVT data to reinforce why this matters: in ATTENTION and BAOCHE, favorable outcome rates were about 46% vs 24% with EVT vs medical therapy in basilar occlusion.',
-   'Selected posterior-circulation thrombectomy is now part of the modern stroke treatment framework.'
+   'For basilar occlusion with NIHSS 6 to 9, the 2026 guideline states that EVT effectiveness is not well established. With still milder deficits, the evidence is even less certain, so vessel anatomy and clinical severity should trigger an individualized neuro-IR discussion rather than an automatic EVT assumption.'
  ],
  citations:['ATTENTION trial', 'BAOCHE trial', '2026 AHA/ASA AIS Guideline'],
  trap:'Sending the patient down the vertigo or inner ear pathway because NIHSS is low.'
@@ -421,7 +408,7 @@ const CASES = [
  activation:'Isolated right-hand weakness',
  context:'43-year-old right-handed dentist, independent at baseline, with abrupt onset about 90 minutes before evaluation.',
  presentation:'After a meeting he notices that the right hand no longer works normally: he cannot make a fist or rapidly tap his fingers. Face, speech, and leg function appear preserved.',
- unknowns:['baseline','anticoag','seizure','collateral','glucose','bp','ncct','cta','ctp','mri'],
+ unknowns:['baseline','seizure','collateral','glucose','bp','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
   glucose:'Glucose 94.',
@@ -433,12 +420,10 @@ const CASES = [
   mri:'MRI: small acute DWI lesion in left precentral hand knob region of motor cortex.',
   collateral:'Patient is the historian. Independent baseline. When asked directly "do you consider this disabling to you," he says yes (he is a working dentist and uses the dominant hand precisely).',
   ems_timeline:'Patient self presented to ED.',
-  meds:'No anticoag. No regular meds.',
   baseline:'mRS 0. Active dentist.',
   seizure_hx:'No history.',
   eeg:'Not indicated.',
   osh:'No prior records.',
-  pharmacy:'No DOAC fills. Ready to prep TNK if needed'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','mri','collateral'],
@@ -447,9 +432,9 @@ const CASES = [
    'Recognize that isolated hand weakness can be cortical stroke, especially when fine finger movements fail disproportionately.',
    'Ask the patient directly whether the deficit is disabling to them to further decide on treatment.',
    'Separate minor disabling from minor nondisabling stroke; that distinction changes treatment more than the raw NIHSS number.',
-   'For minor nondisabling stroke, it is reasonable to consider DAPT instead of TNK. In ARAMIS, DAPT was noninferior to alteplase for excellent 90-day outcome (93.8% vs 91.4%) in minor nondisabling stroke. Ultimately discuss tenecteplase vs DAPT with the patient.',
-   'For recurrent prevention after minor stroke or high-risk TIA, short-course DAPT lowers recurrent ischemic stroke risk (pooled RR 0.68 vs single antiplatelet therapy).',
-   'The evidence for thrombolysis in minor disabling stroke is less settled than it once seemed; always discuss with your attending/fellow.'
+   'The 2026 guideline separates disability from NIHSS: eligible patients with disabling deficits should receive rapid IV thrombolysis regardless of NIHSS, while IV thrombolysis is not recommended for mild nondisabling deficits within 4.5 hours; DAPT is preferred in the appropriate noncardioembolic minor-stroke population.',
+   'For minor noncardioembolic AIS with NIHSS at most 3 or high-risk TIA, the 2026 guideline recommends early aspirin plus clopidogrel for 21 days when IV thrombolysis was not given. Selected NIHSS 4 to 5 atherosclerotic events also have an expanded DAPT pathway.',
+   'Do not let the NIHSS decide whether a deficit is disabling. The treatment question is whether the new deficit meaningfully prevents the patient from performing normal activities or work; then apply the thrombolysis criteria and local stroke protocol.'
  ],
  citations:['ARAMIS trial', 'AHA DAPT evidence review', 'INSPIRES trial', 'TEMPO-2 trial'],
  trap:'Calling it minor stroke and not treating because NIHSS is 1.'
@@ -460,7 +445,7 @@ const CASES = [
  activation:'Acute aphasia and right hemiparesis with severe hypertension',
  context:'72-year-old man with markedly elevated blood pressure recorded repeatedly by EMS.',
  presentation:'About two hours earlier he suddenly stopped speaking, developed leftward gaze deviation, and stopped moving the right arm and leg.',
- unknowns:['baseline','anticoag','seizure','collateral','glucose','nihss','ncct','cta','ctp','mri'],
+ unknowns:['baseline','seizure','collateral','glucose','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
   glucose:'Glucose 132.',
@@ -470,22 +455,20 @@ const CASES = [
   cta:'CTA: left M1 occlusion.',
   ctp:'CTP: mismatch.',
   mri:'Not needed.',
-  collateral:'Wife: last seen well 2 hours ago. mRS 0. Hypertension poorly controlled. No anticoag.',
+  collateral:'Wife: last seen well 2 hours ago. mRS 0. Hypertension poorly controlled. No known DOAC or warfarin use.',
   ems_timeline:'EMS scene call 90 minutes ago.',
-  meds:'Hypertension, hyperlipidemia. No anticoag.',
   baseline:'mRS 0.',
   seizure_hx:'No history.',
   eeg:'Not indicated.',
   osh:'No relevant prior records.',
-  pharmacy:'No DOAC fills. Ready to prep TNK if needed.'
  },
  pathway:'reperfusion',
  ideal:['glucose','bp','nihss','ncct','cta','collateral'],
  syndromeStory:'Concordant left dominant hemispheric cortical syndrome with a concordant left M1 occlusion on CTA. The catch is BP 212/118. The job is to lower BP just enough to be eligible for reperfusion (under 185/110), not to normalize it. Aggressive BP lowering before reperfusion can reduce collateral perfusion and worsen outcome. After successful EVT, the standard ceiling stays at or under 180/105, and pushing SBP below 140 is harmful (Class III).',
  teach:[
-   'BEFORE IV thrombolysis, lower BP just enough to reach eligibility (under 185/110). AFTER IV thrombolysis or EVT, keep BP under 180/105 for 24 hours.',
+   'Before TNK, BP must be below 185/110. After IV thrombolysis, maintain BP below 180/105 for at least 24 hours; after EVT, a ceiling at or below 180/105 is reasonable.',
    'Do not try to normalize BP before reperfusion. Excessive early reduction can compromise collateral flow.',
-   'BP after EVT: current evidence supports avoiding active reduction into the under 130 to 140 range early after successful MT.',
+   'The 2026 guideline specifically advises against intensive SBP lowering below 140 after IV thrombolysis and warns that intensive lowering after EVT may be harmful, even after complete reperfusion.',
    'For a stroke that does not undergo reperfusion therapy, do not routinely lower BP unless it is roughly at or above 220/120, and then reduce only modestly (about 15% in 24 hours).',
    'After EVT, the patient gets BP management in the neuro-ICU.'
  ],
@@ -498,7 +481,7 @@ const CASES = [
  activation:'Acute headache, vomiting, and left-sided weakness',
  context:'66-year-old man with abrupt symptoms about 90 minutes before arrival and severe hypertension in the field.',
  presentation:'He develops a sudden severe headache, vomits, and then develops weakness of the left arm and leg.',
- unknowns:['baseline','anticoag','seizure','collateral','glucose','nihss','cta','ctp','mri'],
+ unknowns:['baseline','seizure','collateral','glucose','nihss','cta','ctp','mri'],
  syndrome:'hemorrhage',
  r:{
   glucose:'Glucose 140.',
@@ -510,12 +493,10 @@ const CASES = [
   mri:'Not indicated acutely.',
   collateral:'Wife: last seen well 90 minutes ago. Hypertension, no anticoag, mRS 0.',
   ems_timeline:'EMS scene call 60 minutes ago.',
-  meds:'Hypertension. No anticoag.',
   baseline:'mRS 0.',
   seizure_hx:'No history.',
   eeg:'Not indicated.',
   osh:'No relevant prior records.',
-  pharmacy:'No DOAC or warfarin fills.'
  },
  pathway:'hemorrhage',
  ideal:['glucose','bp','nihss','ncct','collateral'],
@@ -535,7 +516,7 @@ const CASES = [
  activation:'Seizure-like activity followed by weakness and confusion',
  context:'67-year-old man with hypertension, diabetes, tobacco exposure, prior TIA, and a witnessed paroxysmal event at dinner.',
  presentation:'He becomes unresponsive, forcefully turns his head to the right, and has rhythmic jerking of the right face and arm for about a minute. Afterward he is confused and tachypneic; EMS finds sleepiness, slurred speech, and right-arm weakness.',
- unknowns:['baseline','anticoag','collateral','glucose','bp','nihss','ncct','cta','mri','seizure'],
+ unknowns:['baseline','collateral','glucose','bp','nihss','ncct','cta','mri','seizure'],
  syndrome:'mimic',
  r:{
   glucose:'Glucose 108.',
@@ -547,12 +528,11 @@ const CASES = [
   mri:'MRI: no acute infarct on DWI (if obtained).',
   collateral:'Daughter: known epilepsy on lamotrigine, recently subtherapeutic. Last seizure 1 year ago. mRS 1.',
   ems_timeline:'EMS witnessed end of seizure activity 30 minutes ago.',
-  meds:'Lamotrigine. No anticoag. Hypertension, diabetes.',
+  meds:'Lamotrigine. Hypertension, diabetes.',
   baseline:'mRS 1.',
   seizure_hx:'Known epilepsy, recently subtherapeutic.',
   eeg:'Rapid EEG: no ongoing ictal activity, postictal slowing only.',
   osh:'No recent strokes documented.',
-  pharmacy:'No DOAC fills. Ready to prep TNK if needed.'
  },
  pathway:'mimic_unclear',
  ideal:['glucose','bp','nihss','ncct','collateral','seizure_hx','cta','eeg'],
@@ -747,6 +727,30 @@ const CASES = [
 
 ];
 
+
+// ============================================================
+// Universal bedside presentation metadata
+// Baseline and the initial neurologic examination are shown before any diagnostic framing.
+// Findings are intentionally written as raw observations rather than interpretive labels.
+// ============================================================
+const CASE_BEDSIDE = {
+  c1:{baseline:'Not yet established.',initialExam:{mental:'Awake. No intelligible verbal output. Does not reliably follow spoken commands.',cranial:'Eyes are persistently deviated to the left. Blink to threat is reduced on the right. Right lower facial movement is reduced.',motor:'Left arm and leg move spontaneously against gravity. No purposeful movement is seen in the right arm or right leg.',sensory:'Formal sensory testing is limited by the language deficit.',coordination:'Cannot be meaningfully tested on the weak side.',gait:'Deferred because of the acute deficit.'},strokeTools:['nihss']},
+  c2:{baseline:'Not yet established.',initialExam:{mental:'Awake but mute. Does not reliably follow spoken commands.',cranial:'Eyes are deviated to the left. Blink to threat is absent on the right. Right lower facial movement is reduced.',motor:'No purposeful movement is seen in the right arm or right leg; left limbs move against gravity.',sensory:'Formal testing is limited by impaired communication.',gait:'Deferred.'},strokeTools:['nihss']},
+  c3:{baseline:'Unknown on arrival.',initialExam:{mental:'Awake but nonverbal. Does not reliably follow spoken commands.',cranial:'Persistent leftward gaze. Reduced blink to threat on the right. Right lower facial movement is reduced.',motor:'Right arm and leg do not move purposefully; left arm and leg move against gravity.',sensory:'Formal testing is limited by impaired communication.',gait:'Deferred.'},strokeTools:['nihss']},
+  c4:{baseline:'Not yet established.',initialExam:{mental:'Awake. Answers simple questions but repeatedly fails to attend to people or stimuli on the left.',cranial:'Eyes tend to rest to the right. Blink to threat is reduced on the left. Left lower facial movement is reduced.',motor:'Left arm and leg are weaker than the right.',sensory:'Light touch is detected bilaterally when tested separately, but left-sided stimuli are missed during simultaneous bilateral stimulation.',coordination:'Testing on the left is limited by weakness and inattention.',gait:'Deferred.'},strokeTools:['nihss']},
+  c5:{baseline:'Not yet established.',initialExam:{mental:'Somnolent but arouses to voice. Speech is slurred.',cranial:'Left eyelid is ptotic. Left pupil is larger and poorly reactive. Left eye rests down and out. Right facial movement is symmetric.',motor:'Right arm and leg are weaker than the left.',sensory:'Responds to stimulation on both sides.',gait:'Deferred.'},strokeTools:['nihss']},
+  c6:{baseline:'Not yet established.',initialExam:{mental:'Alert and conversational. Speech is mildly slurred.',cranial:'Spontaneous horizontal left-beating nystagmus is visible in primary gaze. Facial movement is symmetric.',motor:'No clear unilateral arm or leg weakness.',coordination:'He is unable to sit upright without support. Limb testing is limited by severe nausea and vertigo.',gait:'Unable to stand safely because of severe truncal instability.'},strokeTools:['nihss']},
+  c7:{baseline:'Independent; works as a dentist and normally has full use of the dominant right hand.',initialExam:{mental:'Alert, oriented, and fluent.',cranial:'Visual fields, eye movements, and facial movement are symmetric.',motor:'No pronator drift. Proximal arm and leg strength is full. Right finger tapping is markedly slow and irregular; he cannot rapidly open and close the right hand or perform precise finger sequencing.',sensory:'Pinprick and proprioception are symmetric in both hands.',coordination:'Finger-to-nose is accurate bilaterally; fine distal right-hand movements are disproportionately impaired.',gait:'Normal casual gait.'},strokeTools:['nihss']},
+  c8:{baseline:'Not yet established.',initialExam:{mental:'Awake but produces no meaningful speech and does not reliably follow spoken commands.',cranial:'Eyes are deviated to the left. Blink to threat is reduced on the right. Right lower facial movement is reduced.',motor:'No purposeful movement is seen in the right arm or leg; left limbs move against gravity.',sensory:'Formal testing is limited by impaired communication.',gait:'Deferred.'},strokeTools:['nihss']},
+  c9:{baseline:'Not yet established.',initialExam:{mental:'Awake but uncomfortable and intermittently drowsy after vomiting. Speech is understandable.',cranial:'Pupils are symmetric and reactive. Left lower facial movement is reduced.',motor:'Left arm and leg drift downward and cannot sustain full antigravity effort. Right limbs are stronger.',sensory:'Pinprick is reduced on the left compared with the right.',gait:'Deferred because of acute weakness and severe headache.'},strokeTools:['nihss']},
+  c10:{baseline:'Not yet established.',initialExam:{mental:'Sleepy but opens eyes to voice. Answers slowly and is confused about recent events.',cranial:'No persistent gaze deviation. Facial movement is symmetric.',motor:'Mild downward drift of the right arm; legs move symmetrically.',sensory:'Responds to touch on both sides.',coordination:'Testing is slowed by somnolence.',gait:'Deferred.'},strokeTools:['nihss']},
+  c11:{baseline:'Before this hospitalization he walked independently, although family had recently noticed slower gait and distal sensory symptoms.',initialExam:{mental:'Awake enough to follow commands with both upper extremities.',cranial:'Face is symmetric. Eye movements are full. Speech cannot be fully assessed while intubated.',motor:'Upper extremities move symmetrically against gravity. Lower extremities show only trace proximal movement and no reliable distal movement. The legs remain markedly tense during examination, making tone difficult to interpret.',sensory:'Pinprick is reduced distally in both feet. No definite truncal sensory level is identified on the first examination.',reflexes:'Knee reflexes are reduced. Ankle reflexes are absent. Plantar responses are mute.',gait:'Not testable.'}},
+  c12:{baseline:'Before admission she managed basic activities and normal conversation independently; family reports no established dementia diagnosis.',initialExam:{mental:'Awake and conversational. Oriented to name and hospital. Easily distracted and loses the thread of conversation. Performance on multi-step commands is inconsistent.',cranial:'Visual fields, eye movements, facial sensation, and facial movement are symmetric.',motor:'No pronator drift. Strength is symmetric within the limits of pain and deconditioning.',sensory:'Light touch is symmetric.',coordination:'Finger-to-nose is accurate bilaterally.',gait:'Not tested during the initial bedside assessment.'}},
+  c13:{baseline:'Fully independent with normal speech, swallowing, and mobility before this illness.',initialExam:{mental:'Alert, oriented, attentive, and fluent. Language is normal.',cranial:'Pupils are symmetric and reactive. Extraocular movements are full on brief testing. Facial sensation is intact. Facial activation is mildly weak but symmetric. Speech is mildly slurred. Tongue is midline without atrophy.',motor:'Normal bulk and tone. No pronator drift or fasciculations. Limb strength is near full on brief confrontation testing.',sensory:'Pinprick, vibration, and proprioception are intact.',coordination:'Finger-to-nose and finger taps are accurate on brief testing.',reflexes:'Biceps, triceps, brachioradialis, patellar, and ankle reflexes are 2+ and symmetric. Plantar responses are flexor.',gait:'Casual gait is normal.'}},
+  c14:{baseline:'Earlier in the day he was conversational and consistently followed commands despite known metastatic disease.',initialExam:{mental:'Opens eyes to voice. At times tracks and follows a one-step command; several minutes later he may stare without responding while remaining awake.',cranial:'Pupils are symmetric and reactive. No persistent gaze deviation is present between episodes. Facial movement is grossly symmetric.',motor:'No new dense unilateral weakness is identified. All four limbs move against gravity when he participates.',sensory:'Withdraws or localizes to stimulation on both sides.',coordination:'Formal testing is limited by fluctuating participation.',gait:'Not tested.'}}
+};
+CASES.forEach(c=>Object.assign(c,CASE_BEDSIDE[c.id]||{}));
+
 // ============================================================
 // Case-specific educational design
 // Universal reasoning is constant; the clinical decision varies by case.
@@ -806,18 +810,23 @@ const CASE_DESIGN = {
     clinicalQuestion:'Does the whole acute vestibular syndrome fit a peripheral lesion, or is there enough discordance to pursue a central vascular cause?',
     finalManagementLabel:'Acute management decision',
     debriefDecisionTitle:'Using HINTS within the syndrome, not as a shortcut',
-    actionPurpose:{nihss:'Describe the deficit, while recognizing that NIHSS can underrepresent posterior-circulation disability.'},
+    actionPurpose:{nihss:'Quantify deficits captured by the NIHSS while recognizing that the score underrepresents truncal, gait, and ocular-motor abnormalities.'},
     activeQuestions:{
+      focused_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Do the eye movement and balance findings cohere with a peripheral vestibular lesion, or is there discordance suggesting a central process?',correct:true},
+        {label:'Can the NIHSS determine whether this is peripheral vertigo?'},
+        {label:'Does any corrective saccade exclude posterior circulation stroke?'}],
+        feedback:'Interpret the individual ocular motor and postural findings in the context of a continuous acute vestibular syndrome. The goal is not to obtain a HINTS label; it is to decide whether the observed findings cohere with one localization.'},
       nihss:{prompt:'What question are you trying to answer?',options:[
-        {label:'What focal deficits are present, while remembering the score may underrepresent this syndrome?',correct:true},
+        {label:'Which deficits are captured by the NIHSS, and what important findings does it miss?',correct:true},
         {label:'Can a low NIHSS rule out posterior circulation stroke?'},
         {label:'Can NIHSS distinguish vestibular neuritis from cerebellar stroke by itself?'}],
-        feedback:'The NIHSS describes some deficits but is not designed to settle an acute vestibular localization. The eye findings, gait/truncal stability, cranial nerves, timing, and associated symptoms must be interpreted together.'},
+        feedback:'NIHSS describes some deficits but does not settle an acute vestibular localization. Eye findings, truncal stability, cranial nerves, tempo, and associated symptoms remain essential.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there a structural posterior-fossa correlate for the central features that remain unexplained?',correct:true},
         {label:'Can a negative early MRI always rule out posterior circulation stroke?'},
-        {label:'Is HINTS unnecessary whenever MRI is available?'}],
-        feedback:'MRI can provide a structural correlate, but early DWI can miss posterior circulation infarction. Bedside findings and imaging should be reconciled rather than treated as competing absolute tests.'}
+        {label:'Is bedside examination unnecessary whenever MRI is available?'}],
+        feedback:'MRI may provide a structural correlate, but bedside findings and imaging should be reconciled rather than treated as competing absolute tests.'}
     }
   },
   c7:{
@@ -868,6 +877,11 @@ const CASE_DESIGN = {
       lp:'If inflammation or infection remains plausible, does CSF provide evidence for that mechanism?'
     },
     activeQuestions:{
+      focused_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Which level of the neuraxis best explains the pattern of weakness, sensation, and reflexes?',correct:true},
+        {label:'Can one abnormal MRI substitute for localization?'},
+        {label:'Does reduced reflexes prove the process is peripheral?'}],
+        feedback:'The targeted examination is meant to discriminate among cord, conus/roots, peripheral nerve, and multifocal disease. Strength distribution, reflexes, sensory level, sacral findings, and serial change are more informative together than any single sign.'},
       mri_tspine:{prompt:'What question are you trying to answer?',options:[
         {label:'Is there a thoracic cord lesion that anatomically explains the syndrome, and is it compressive?',correct:true},
         {label:'Does any thoracic MRI abnormality automatically establish the cause of weakness?'},
@@ -896,16 +910,26 @@ const CASE_DESIGN = {
     finalManagementLabel:'What would you do now?',
     debriefDecisionTitle:'When additional neurologic testing would actually change the model',
     activeQuestions:{
+      attention_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there an acute disturbance of attention or arousal that fluctuates over time?',correct:true},
+        {label:'Can orientation alone establish or exclude delirium?'},
+        {label:'Does inattention by itself localize to one cerebral hemisphere?'}],
+        feedback:'Direct attention testing converts a vague report of confusion into an observable cognitive phenotype. Pattern and fluctuation matter more than a single orientation question.'},
+      focused_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is there a reproducible focal neurologic deficit that requires a different localization?',correct:true},
+        {label:'Can a normal single examination prove there is no neurologic disease?'},
+        {label:'Does chronic small-vessel disease explain the current fluctuation?'}],
+        feedback:'The focal examination looks for a stable localizing syndrome that would change the model. Repetition matters when the complaint itself fluctuates.'},
       eeg:{prompt:'What question are you trying to answer?',options:[
         {label:'Is the unexplained alteration in awareness persistent or stereotyped enough to suspect ictal activity?',correct:true},
         {label:'Can EEG confirm multifactorial delirium?'},
         {label:'Can EEG rule out a small ischemic stroke?'}],
-        feedback:'EEG is most useful when the phenotype creates an ictal question—persistent unexplained impaired awareness, stereotyped episodes, or fluctuations not explained by the systemic course. It is not a routine confirmation test for delirium.'},
+        feedback:'EEG is useful when the phenotype creates an ictal question—persistent unexplained impaired awareness, stereotyped episodes, or fluctuations not explained by the systemic course. It is not a routine confirmation test for delirium.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Has a persistent focal syndrome or unexplained trajectory emerged that now warrants structural imaging?',correct:true},
         {label:'Does every episode of inpatient confusion require MRI?'},
         {label:'Can MRI establish delirium as the diagnosis?'}],
-        feedback:'MRI should answer a structural question created by the phenotype or trajectory. A fluctuating nonfocal attentional syndrome with plausible systemic precipitants does not become more rigorous simply by ordering more imaging.'}
+        feedback:'MRI should answer a structural question created by the phenotype or trajectory. More testing is not automatically more rigorous.'}
     }
   },
   c13:{
@@ -942,6 +966,16 @@ const CASE_DESIGN = {
     finalManagementLabel:'Most important next step',
     debriefDecisionTitle:'When an obvious structural abnormality is not the whole explanation',
     activeQuestions:{
+      attention_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Is awareness persistently depressed, or does responsiveness fluctuate over minutes?',correct:true},
+        {label:'Can a single GCS-like snapshot distinguish edema from seizure?'},
+        {label:'Does known metastatic disease make serial examination unnecessary?'}],
+        feedback:'The time series is the finding. Abrupt within-encounter changes in responsiveness create a different physiologic question than sustained somnolence.'},
+      focused_exam:{prompt:'What question are you trying to answer?',options:[
+        {label:'Do transient focal motor, ocular, or language findings accompany the fluctuations?',correct:true},
+        {label:'Does the absence of dense hemiplegia exclude seizures?'},
+        {label:'Can the examination determine the tumor histology?'}],
+        feedback:'Subtle transient focal observations can be the clue that altered mental status has a dynamic cortical component. The goal is to observe the event, not label it before EEG.'},
       mri:{prompt:'What question are you trying to answer?',options:[
         {label:'Has the structural disease changed enough to explain the new neurologic trajectory?',correct:true},
         {label:'Can MRI exclude nonconvulsive status epilepticus? '},
@@ -961,6 +995,7 @@ const CASE_DESIGN = {
   }
 };
 CASES.forEach(c=>Object.assign(c,CASE_DESIGN[c.id]||{}));
+
 
 // ============================================================
 // Case reasoning metadata: expected tempo/localization, differential, trajectory

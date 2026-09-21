@@ -6,9 +6,11 @@ The core framework is:
 
 **How did this happen? → Where is it? → What syndrome does that produce? → What causes that syndrome in this context?**
 
+The neurologic examination is central to every case. Findings are shown as raw observations whenever possible so the learner has to interpret them rather than being given a localization or diagnostic label.
+
 Each case follows the same sequence:
 
-**Understand → Frame → Gather → Update → Finalize**
+**See the patient → Frame → Clarify → Update → Finalize**
 
 Cases may involve stroke, seizure, myelopathy, delirium, vestibular syndromes, neuromuscular disease, and other acute neurologic problems. Some have a clear answer; others intentionally preserve uncertainty or competing localizations.
 
@@ -17,6 +19,8 @@ Important tests may ask:
 **What question are you trying to answer?**
 
 The goal is to encourage targeted data gathering and active updating of the working model rather than clicking through a checklist.
+
+Stroke cases use **TNK** consistently to mirror Duke acute-stroke practice. The cases incorporate high-yield changes from the 2026 AHA/ASA acute ischemic stroke guideline, including disability rather than NIHSS alone, expanded EVT eligibility, extended-window imaging selection, DAPT for appropriate nondisabling minor stroke, and current blood-pressure targets.
 
 ## Inspiration
 
