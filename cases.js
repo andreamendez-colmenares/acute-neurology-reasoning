@@ -30,15 +30,15 @@ const PROB_LEVELS = [
 // Syndrome families
 // ============================================================
 const SYNDROMES = [
-  {id:'dominant_mca', title:'Dominant (in most cases left hemisphere) MCA cortical', desc:'Aphasia + R-sided weakness, L gaze deviation. L MCA territory.'},
-  {id:'nondominant_mca', title:'Nondominant MCA cortical', desc:'L hemineglect + L-sided weakness, R gaze deviation (eyes look toward the lesion). R MCA territory.'},
-  {id:'aca', title:'ACA syndrome', desc:'Contralateral leg > arm weakness, abulia, urinary incontinence. ACA territory.'},
-  {id:'lacunar', title:'Lacunar / internal capsule', desc:'Pure motor or pure sensory, no cortical signs. Internal capsule, pons.'},
-  {id:'thalamic', title:'Thalamic / sensory', desc:'Hemisensory loss, sensory neglect, decreased arousal. Thalamic territory.'},
-  {id:'posterior_brainstem', title:'Posterior circulation / brainstem', desc:'Crossed signs, CN palsies, decreased LOC, dysarthria. Basilar / midbrain / pons.'},
-  {id:'cerebellar_vestibular', title:'Acute vestibular / cerebellar syndrome', desc:'Continuous vertigo/dizziness with gait, nystagmus, ocular motor, hearing, or limb/truncal coordination findings.'},
-  {id:'hemorrhage', title:'Hemorrhage likely', desc:'Sudden HA + vomiting + decreased LOC. Diverts pathway.'},
-  {id:'mimic', title:'Nonvascular or uncertain syndrome', desc:'The current observations do not yet form a convincing focal vascular syndrome, or another mechanism may better explain them.'}
+  {id:'dominant_mca', title:'Dominant hemispheric cortical syndrome', desc:'Aphasia with other cortical findings such as gaze preference, visual field loss, or contralateral weakness.'},
+  {id:'nondominant_mca', title:'Nondominant hemispheric cortical syndrome', desc:'Neglect or extinction with other cortical findings such as gaze preference, visual field loss, or contralateral weakness.'},
+  {id:'aca', title:'Medial frontal / leg-predominant hemispheric syndrome', desc:'Leg-predominant weakness with possible abulia or other medial frontal findings.'},
+  {id:'lacunar', title:'Pure motor or sensory subcortical syndrome', desc:'Pure motor, pure sensory, or related deep-structure pattern without cortical signs.'},
+  {id:'thalamic', title:'Hemisensory / deep hemispheric syndrome', desc:'Prominent hemisensory findings with possible altered arousal or other deep hemispheric features.'},
+  {id:'posterior_brainstem', title:'Brainstem syndrome', desc:'Cranial nerve findings, crossed signs, long-tract findings, dysarthria, or impaired arousal.'},
+  {id:'cerebellar_vestibular', title:'Acute vestibular / cerebellar syndrome', desc:'Continuous vertigo or dizziness with nystagmus, gait/truncal instability, ocular motor findings, hearing symptoms, or dysmetria.'},
+  {id:'hemorrhage', title:'Acute focal syndrome with headache / vomiting / impaired arousal', desc:'A focal neurologic syndrome accompanied by severe headache, vomiting, or reduced level of consciousness.'},
+  {id:'mimic', title:'Diffuse, nonfocal, or uncertain syndrome', desc:'The observations do not yet form a coherent focal syndrome, or the localization remains uncertain.'}
 ];
 
 // ============================================================
@@ -136,6 +136,9 @@ const CASES = [
 
 {id:'c1', n:1,
  arrival:'About 68 years old, brought in by EMS from a restaurant. EMS says the patient suddenly stopped talking mid meal, kept staring to the left, and stopped moving the right arm and leg. No ID on her, no family with her yet.',
+ activation:'Acute language change and right-sided weakness',
+ context:'Older adult; identity, baseline, medications, and collateral are initially unavailable.',
+ presentation:'EMS reports sudden loss of speech, persistent leftward gaze, and loss of movement in the right arm and leg while eating at a restaurant.',
  unknowns:['identity','lkw','baseline','anticoag','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
@@ -171,6 +174,9 @@ const CASES = [
 
 {id:'c2', n:2,
  arrival:'Around 74 years old, found by family on the bedroom floor at 6:30 AM. She is not speaking at all, does not seem to see anything to her right, and is not moving the right arm or leg. Family last saw her normal at 10 PM the night before.',
+ activation:'Wake-up focal neurologic deficit',
+ context:'Older adult found at home; last known well was the prior evening.',
+ presentation:'At 6:30 AM she is found on the floor, mute, not responding to the right side of visual space, and not moving the right arm or leg.',
  unknowns:['lkw','baseline','anticoag','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
@@ -206,6 +212,9 @@ const CASES = [
 
 {id:'c3', n:3,
  arrival:'Adult brought in by EMS from a bus stop. Not talking. Right arm and leg are not moving. No ID, no phone, no family with her. A bystander says she just collapsed; he is not sure when.',
+ activation:'Acute aphasia and right-sided weakness with unclear onset',
+ context:'Adult found in public with no identification, phone, or immediately available collateral.',
+ presentation:'A bystander reports a collapse at a bus stop. On EMS assessment she is not speaking and is not moving the right arm or leg; the exact onset is uncertain.',
  unknowns:['identity','lkw','baseline','anticoag','seizure','collateral','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
@@ -239,6 +248,9 @@ const CASES = [
 
 {id:'c4', n:4,
  arrival:'61 year old woman. Family found her at 7 PM with the left side of her face drooping and the left arm and leg weak. She was last normal at 8 AM that morning. Eyes look pulled to the right, and she does not seem to notice things on the left.',
+ activation:'Left-sided weakness and neglect',
+ context:'61-year-old woman found symptomatic at home; last known normal earlier that morning.',
+ presentation:'Family finds left facial, arm, and leg weakness. Her eyes are directed to the right and she appears not to attend to the left side.',
  unknowns:['baseline','anticoag','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'nondominant_mca',
  r:{
@@ -274,6 +286,9 @@ const CASES = [
 
 {id:'c5', n:5,
  arrival:'58 year old man. About two hours ago he became suddenly sleepy at home. His family noticed his left eye is sitting down and out, the left pupil is big, and his eyelid is drooping. The right arm and leg are weak. His speech is slurred.',
+ activation:'Somnolence, ocular findings, and right-sided weakness',
+ context:'58-year-old man with abrupt symptoms at home approximately two hours before arrival.',
+ presentation:'He becomes suddenly sleepy. The left eyelid droops, the left pupil appears enlarged, the left eye rests down and out, the right arm and leg are weak, and speech is slurred.',
  unknowns:['lkw','baseline','anticoag','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'posterior_brainstem',
  r:{
@@ -309,6 +324,9 @@ const CASES = [
 
 {id:'c6', n:6,
  arrival:'62 year old man, brought in 90 minutes after sudden severe spinning. He cannot sit upright, he is vomiting, and his speech is slurred. There is no obvious weakness on one side.',
+ activation:'Acute vertigo with inability to sit unsupported',
+ context:'62-year-old man with sudden, continuous vestibular symptoms beginning about 90 minutes before arrival.',
+ presentation:'He has severe continuous spinning, repeated vomiting, slurred speech, and cannot sit upright without support. There is no obvious unilateral limb weakness.',
  unknowns:['lkw','baseline','anticoag','seizure','glucose','bp','nihss','ncct','cta','ctp','mri'],
  syndrome:'cerebellar_vestibular',
  r:{
@@ -346,6 +364,9 @@ const CASES = [
 
 {id:'c7', n:7,
  arrival:'43 year old right-handed dentist. About 90 minutes ago, after a meeting, he noticed his right hand stopped working. He cannot make a fist or tap his fingers. The face and leg look fine.',
+ activation:'Isolated right-hand weakness',
+ context:'43-year-old right-handed dentist, independent at baseline, with abrupt onset about 90 minutes before evaluation.',
+ presentation:'After a meeting he notices that the right hand no longer works normally: he cannot make a fist or rapidly tap his fingers. Face, speech, and leg function appear preserved.',
  unknowns:['baseline','anticoag','seizure','collateral','glucose','bp','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
@@ -382,6 +403,9 @@ const CASES = [
 
 {id:'c8', n:8,
  arrival:'72 year old man. About 2 hours ago he suddenly stopped speaking, his eyes pulled to the left, and his right arm and leg stopped moving. EMS keeps getting blood pressures around 212/118.',
+ activation:'Acute aphasia and right hemiparesis with severe hypertension',
+ context:'72-year-old man with markedly elevated blood pressure recorded repeatedly by EMS.',
+ presentation:'About two hours earlier he suddenly stopped speaking, developed leftward gaze deviation, and stopped moving the right arm and leg.',
  unknowns:['baseline','anticoag','seizure','collateral','glucose','nihss','ncct','cta','ctp','mri'],
  syndrome:'dominant_mca',
  r:{
@@ -417,6 +441,9 @@ const CASES = [
 
 {id:'c9', n:9,
  arrival:'66 year old man. About 90 minutes ago he suddenly developed the worst headache of his life, vomited, and the left arm and leg went weak. EMS getting blood pressures around 198/108.',
+ activation:'Acute headache, vomiting, and left-sided weakness',
+ context:'66-year-old man with abrupt symptoms about 90 minutes before arrival and severe hypertension in the field.',
+ presentation:'He develops a sudden severe headache, vomits, and then develops weakness of the left arm and leg.',
  unknowns:['baseline','anticoag','seizure','collateral','glucose','nihss','cta','ctp','mri'],
  syndrome:'hemorrhage',
  r:{
@@ -451,6 +478,9 @@ const CASES = [
 
 {id:'c10', n:10,
  arrival:'67 year old man with high blood pressure, diabetes, smoking, and prior TIA. At dinner he became unresponsive, his head turned forcefully to the right, and his right face and right arm started jerking rhythmically for about a minute. After it stopped, he was confused and breathing heavily. EMS finds him sleepy, slurred speech, weak in the right arm.',
+ activation:'Seizure-like activity followed by weakness and confusion',
+ context:'67-year-old man with hypertension, diabetes, tobacco exposure, prior TIA, and a witnessed paroxysmal event at dinner.',
+ presentation:'He becomes unresponsive, forcefully turns his head to the right, and has rhythmic jerking of the right face and arm for about a minute. Afterward he is confused and tachypneic; EMS finds sleepiness, slurred speech, and right-arm weakness.',
  unknowns:['baseline','anticoag','collateral','glucose','bp','nihss','ncct','cta','mri','seizure'],
  syndrome:'mimic',
  r:{
@@ -472,7 +502,7 @@ const CASES = [
  },
  pathway:'mimic_unclear',
  ideal:['glucose','bp','nihss','ncct','collateral','seizure_hx','cta','eeg'],
- syndromeStory:'He became unresponsive, his head turned forcefully to the right, and his right face and arm jerked for about a minute. He woke up confused. The right arm is weak but improving. The bedside sequence (forced head turn, positive motor activity, postictal confusion, improving deficit) fits Todd paralysis from a focal seizure. CTA showed no large vessel occlusion. Vascular risk factors do not erase the seizure clues. Hold thrombolysis pending observation; rapid EEG if any concern for ongoing ictal activity.',
+ syndromeStory:'He became unresponsive, his head turned forcefully to the right, and his right face and arm jerked for about a minute. He woke up confused. The right arm is weak but improving. The bedside sequence (forced head turn, positive motor activity, postictal confusion, improving deficit) fits Todd paralysis from a focal seizure. CTA showed no large vessel occlusion. Vascular risk factors do not erase the seizure clues. In this case the focal deficit continues to improve and the overall sequence supports a postictal deficit, so thrombolysis is not pursued. Seizure at onset itself does not exclude thrombolysis when a persistent disabling deficit is still thought to represent acute ischemic stroke; rapid EEG is reasonable if impaired awareness persists or recurs without convulsive activity.',
  teach:[
    'Reconstruct the sequence of symptoms. In stroke, symptoms usually begin with a NEGATIVE deficit (sudden loss of function). In seizure, symptoms often begin with POSITIVE motor activity and then leave a transient negative deficit.',
    'Why the gaze direction differs in a seizure: in stroke, the damaged hemisphere cannot drive the eyes anymore, so the working hemisphere wins and the eyes are PULLED TOWARD the lesion. In seizure, the active electrical firing PUSHES the eyes AWAY from the focus, toward the symptomatic side. So a left frontal seizure causes the head and eyes to turn forcefully to the right, exactly what you see here.',

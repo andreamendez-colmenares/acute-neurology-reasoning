@@ -1,6 +1,6 @@
 "use strict";
 
-const KEY = "stroke_code_v12";
+const KEY = "stroke_code_v14";
 const THEMES = {
   all:"All cases",
   focal:"Acute focal deficit",
@@ -22,7 +22,7 @@ function freshState(){
   return {
     view:"home", caseId:null, startedAt:0, elapsed:0, timerRunning:false,
     tempo:null, localization:null, syndrome:null, hypothesisLevels:{}, reasoningUpdates:[],
-    reexamCount:0, actionsTaken:[], revealed:{}, pathwayChoice:null, timeline:[], history:[], theme:"all"
+    reexamCount:0, actionsTaken:[], revealed:{}, pathwayChoice:null, finalDiagnosis:"", finalConfidence:"", timeline:[], history:[], theme:"all"
   };
 }
 let S = freshState();
@@ -66,15 +66,14 @@ function render(){
 function renderHome(app){
   const filtered=S.theme==="all"?CASES:CASES.filter(c=>(CASE_THEMES[c.id]||[]).includes(S.theme));
   app.innerHTML=`
-    <section class="hero">
-      <h1>Think through the stroke code.</h1>
-      <p>Build the syndrome from time course and examination, localize before labeling, and update your differential as the patient and data evolve.</p>
-      <div class="home-cta"><button class="primary" id="randomCase">Start a case</button><button class="secondary" id="resumeCase" ${S.caseId&&S.timeline.length?'':'hidden'}>Resume current case</button></div>
+    <section class="hero minimal-home">
+      <h1>STROKE CODE</h1>
+      <p>Interactive cases in acute neurologic reasoning.</p>
+      <div class="home-cta"><button class="primary" id="randomCase">Start a case</button><button class="secondary" id="resumeCase" ${S.caseId&&S.timeline.length?'':'hidden'}>Resume case</button></div>
     </section>
-    <div class="section-title">Reasoning themes</div>
-    <div class="theme-row">${Object.entries(THEMES).map(([id,label])=>`<button class="theme-chip ${S.theme===id?'active':''}" data-theme="${id}">${label}</button>`).join('')}</div>
     <div class="section-title">Cases</div>
-    <div class="case-grid">${filtered.map(c=>`<button class="case-card" data-case="${c.id}"><span class="case-kicker">Case ${c.n}</span><h3>${caseName(c)}</h3><p>${htmlSafe(c.arrival)}</p></button>`).join('')}</div>`;
+    <div class="theme-row">${Object.entries(THEMES).map(([id,label])=>`<button class="theme-chip ${S.theme===id?'active':''}" data-theme="${id}">${label}</button>`).join('')}</div>
+    <div class="case-grid">${filtered.map(c=>`<button class="case-card" data-case="${c.id}"><span class="case-kicker">Case ${c.n}</span><h3>${caseName(c)}</h3></button>`).join('')}</div>`;
   $("#randomCase").onclick=()=>startCase(filtered[Math.floor(Math.random()*filtered.length)].id);
   const resume=$("#resumeCase"); if(resume) resume.onclick=()=>{S.view="case"; if(!S.timerRunning){S.startedAt=Date.now();S.timerRunning=true;} save();render();};
   app.querySelectorAll("[data-theme]").forEach(b=>b.onclick=()=>{S.theme=b.dataset.theme;save();render();});
@@ -87,36 +86,46 @@ function caseName(c){
 
 function startCase(id){
   const history=S.history||[]; const theme=S.theme||"all";
-  S=freshState(); S.history=history; S.theme=theme; S.caseId=id; S.view="case"; S.timeline=[{time:"00:00",type:"Arrival",title:"Initial presentation",text:getCase().arrival}];
-  save(); startTimer(); render(); setTimeout(()=>openModelSheet(true),120);
+  S=freshState(); S.history=history; S.theme=theme; S.caseId=id; S.view="case"; S.timeline=[{time:"00:00",type:"Arrival",title:"Initial presentation",text:getCase().presentation||getCase().arrival}];
+  save(); startTimer(); render();
 }
 
 function renderCase(app,c){
   const r=reasoningFor(c);
   app.innerHTML=`<section class="workspace">
-    <div class="patient-banner"><div class="eyebrow">Stroke-code presentation</div><p>${htmlSafe(c.arrival)}</p></div>
+    <div class="patient-banner">
+      <div class="case-kicker">Case ${c.n}</div>
+      <div class="activation-line"><span>Stroke code</span><strong>${htmlSafe(c.activation||caseName(c))}</strong></div>
+      <div class="context-line"><span>Context</span><p>${htmlSafe(c.context||"")}</p></div>
+      <div class="presentation-line"><span>Presentation</span><p>${htmlSafe(c.presentation||c.arrival)}</p></div>
+    </div>
     <section class="timeline-panel">
-      <div class="timeline-head"><h2>Clinical timeline</h2><button class="ghost" id="factsBtn">Case facts</button></div>
+      <div class="timeline-head"><h2>Clinical timeline</h2></div>
       <div class="timeline">${S.timeline.map(renderEvent).join('')}</div>
       <button class="reexam-button" id="reexamBtn">↻ Re-examine patient</button>
     </section>
     <aside class="workspace-side">
-      <div class="panel">
-        <div class="panel-head"><div><div class="eyebrow">Current working model</div><h3>Reasoning summary</h3></div><button class="ghost" id="editModel">Edit</button></div>
+      <div class="panel model-panel">
+        <div class="panel-head"><div><div class="eyebrow">Working model</div></div><button class="ghost" id="editModel">Edit</button></div>
         ${workingModelHTML(r)}
       </div>
-      <div class="panel desktop-actions"><button class="secondary" data-sheet="ask">Ask</button><button class="secondary" data-sheet="examine">Examine</button><button class="secondary" data-sheet="test">Test</button><button class="secondary" data-sheet="update">Update</button><button class="primary" data-sheet="manage">Manage</button></div>
+      <div class="panel desktop-actions"><button class="secondary" data-sheet="ask">Ask</button><button class="secondary" data-sheet="examine">Examine</button><button class="secondary" data-sheet="test">Tests</button><button class="secondary" data-sheet="update">Update</button></div>
+      <button class="primary finalize-button" id="finalizeBtn">Finalize assessment</button>
     </aside>
   </section>`;
-  $("#reexamBtn").onclick=doReexam; $("#editModel").onclick=()=>openModelSheet(false); $("#factsBtn").onclick=openFactsSheet;
+  $("#reexamBtn").onclick=doReexam; $("#editModel").onclick=()=>openModelSheet(false); $("#finalizeBtn").onclick=openFinalizeSheet;
   app.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>openSheet(b.dataset.sheet));
 }
 function renderEvent(e){ return `<article class="event ${e.kind||''}"><div class="event-meta"><span class="event-time">${htmlSafe(e.time)}</span><span class="event-type">${htmlSafe(e.type)}</span></div><h3>${htmlSafe(e.title)}</h3><p>${e.text||''}</p></article>`; }
 function workingModelHTML(r){
-  if(!S.tempo&&!S.localization&&!S.syndrome&&!Object.keys(S.hypothesisLevels).length) return `<div class="model-empty">No working model recorded yet. Frame the time course, localization, syndrome, and initial differential when you are ready.</div><button class="primary" style="margin-top:10px" onclick="openModelSheet(true)">Frame working model</button>`;
-  const chips=[S.tempo?titleFor(TEMPOS,S.tempo):null,S.localization?titleFor(LOCALIZATIONS,S.localization):null,S.syndrome?titleFor(SYNDROMES,S.syndrome):null].filter(Boolean);
+  if(!S.tempo&&!S.localization&&!S.syndrome&&!Object.keys(S.hypothesisLevels).length) return `<button class="secondary" onclick="openModelSheet(true)">Frame the syndrome</button>`;
+  const rows=[
+    S.tempo?`<div class="model-row"><span>Pace</span><b>${htmlSafe(titleFor(TEMPOS,S.tempo))}</b></div>`:'',
+    S.localization?`<div class="model-row"><span>Localization</span><b>${htmlSafe(titleFor(LOCALIZATIONS,S.localization))}</b></div>`:'',
+    S.syndrome?`<div class="model-row"><span>Syndrome</span><b>${htmlSafe(titleFor(SYNDROMES,S.syndrome))}</b></div>`:''
+  ].join('');
   const diffs=r.hypotheses.filter(h=>S.hypothesisLevels[h]).map(h=>`<div class="diff-row"><span>${htmlSafe(h)}</span><span class="prob">${probLabel(S.hypothesisLevels[h])}</span></div>`).join('');
-  return `<div class="model-summary">${chips.map(x=>`<span class="model-chip">${htmlSafe(x)}</span>`).join('')}</div>${diffs?`<div class="diff-list">${diffs}</div>`:`<div class="model-empty" style="margin-top:9px">Differential probability has not been recorded yet.</div>`}`;
+  return `<div class="model-rows">${rows}</div>${diffs?`<div class="diff-list"><div class="model-subhead">Differential</div>${diffs}</div>`:''}`;
 }
 
 function openSheet(kind){
@@ -126,7 +135,6 @@ function openSheet(kind){
   if(kind==="examine") return openActionSheet("Examine",[["bedside","Bedside examination"]]);
   if(kind==="test") return openActionSheet("Test",[["imaging","Imaging"],["other","Other tests / resources"]]);
   if(kind==="update") return openUpdateSheet();
-  if(kind==="manage") return openManageSheet();
 }
 function showSheet(eyebrow,title,html){
   $("#sheetEyebrow").textContent=eyebrow||""; $("#sheetTitle").textContent=title; $("#sheetBody").innerHTML=html; const d=$("#sheet"); if(!d.open)d.showModal();
@@ -136,7 +144,7 @@ function closeSheet(){ const d=$("#sheet"); if(d.open)d.close(); }
 function openActionSheet(title,sections){
   const c=getCase();
   const html=sections.map(([key,label])=>`<section class="sheet-section"><h3>${label}</h3><div class="action-list">${ACTIONS[key].map(a=>actionButtonHTML(a,c)).join('')}</div></section>`).join('');
-  showSheet("Clinical workspace",title,html);
+  showSheet("",title,html);
   $("#sheetBody").querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>doAction(b.dataset.action));
 }
 function actionButtonHTML(a,c){
@@ -158,8 +166,8 @@ function doReexam(){
 
 function openModelSheet(first){
   const c=getCase(), r=reasoningFor(c); if(!c)return;
-  showSheet(first?"Initial reasoning":"Working model",first?"Frame the syndrome":"Revise the working model",`
-    <section class="sheet-section"><h3>Time course</h3><div class="choice-list">${TEMPOS.map(x=>radioHTML("tempo",x.id,x.title,x.desc,S.tempo)).join('')}</div></section>
+  showSheet("",first?"Frame the syndrome":"Working model",`
+    <section class="sheet-section"><h3>Pace</h3><div class="choice-list">${TEMPOS.map(x=>radioHTML("tempo",x.id,x.title,x.desc,S.tempo)).join('')}</div></section>
     <section class="sheet-section"><h3>Localization</h3><div class="choice-list">${LOCALIZATIONS.map(x=>radioHTML("localization",x.id,x.title,x.desc,S.localization)).join('')}</div></section>
     <section class="sheet-section"><h3>Syndrome</h3><div class="choice-list">${SYNDROMES.map(x=>radioHTML("syndrome",x.id,x.title,x.desc,S.syndrome)).join('')}</div></section>
     <section class="sheet-section"><h3>Initial differential</h3>${probBoardHTML(r.hypotheses,S.hypothesisLevels,"modelprob")}</section>
@@ -179,46 +187,68 @@ function probBoardHTML(hypotheses,levels,prefix){return `<div class="prob-board"
 function wireProbGroup(group){ group.querySelectorAll(".prob-choice").forEach(b=>b.onclick=()=>{group.querySelectorAll(".prob-choice").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");}); }
 function readProbGroups(prefix){ const out={}; document.querySelectorAll(`[data-prob-group^="${prefix}-"]`).forEach(g=>{const b=g.querySelector(".prob-choice.selected");if(b)out[g.dataset.hyp]=b.dataset.level;});return out; }
 function reasoningSummaryText(r){
-  const parts=[]; if(S.tempo)parts.push(`Tempo: ${titleFor(TEMPOS,S.tempo)}`); if(S.localization)parts.push(`Localization: ${titleFor(LOCALIZATIONS,S.localization)}`); if(S.syndrome)parts.push(`Syndrome: ${titleFor(SYNDROMES,S.syndrome)}`);
+  const parts=[]; if(S.tempo)parts.push(`Pace: ${titleFor(TEMPOS,S.tempo)}`); if(S.localization)parts.push(`Localization: ${titleFor(LOCALIZATIONS,S.localization)}`); if(S.syndrome)parts.push(`Syndrome: ${titleFor(SYNDROMES,S.syndrome)}`);
   const d=r.hypotheses.filter(h=>S.hypothesisLevels[h]).map(h=>`${h}: ${probLabel(S.hypothesisLevels[h])}`); if(d.length)parts.push(`Differential: ${d.join("; ")}`); return htmlSafe(parts.join(" · "));
 }
 
 function openUpdateSheet(){
   const c=getCase(), r=reasoningFor(c); if(!c)return;
-  showSheet("Diagnostic updating","How has your thinking changed?",`${probBoardHTML(r.hypotheses,S.hypothesisLevels,"updateprob")}<label class="field-label" for="updateNote">What changed your thinking? <span style="font-weight:500;color:#98a2b3">Optional</span></label><textarea class="text-input" id="updateNote" rows="3" placeholder="A finding, trajectory, or test result..."></textarea><div class="sheet-actions"><button class="secondary" id="cancelUpdate">Close</button><button class="primary" id="saveUpdate">Save update</button></div>`);
+  showSheet("","Update differential",`${probBoardHTML(r.hypotheses,S.hypothesisLevels,"updateprob")}<label class="field-label" for="updateNote">What changed your thinking? <span style="font-weight:500;color:#98a2b3">Optional</span></label><textarea class="text-input" id="updateNote" rows="3" placeholder="A finding, trajectory, or test result..."></textarea><div class="sheet-actions"><button class="secondary" id="cancelUpdate">Close</button><button class="primary" id="saveUpdate">Save update</button></div>`);
   $("#sheetBody").querySelectorAll("[data-prob-group]").forEach(wireProbGroup); $("#cancelUpdate").onclick=closeSheet;
   $("#saveUpdate").onclick=()=>{ const next=readProbGroups("updateprob"); const prev={...S.hypothesisLevels}; S.hypothesisLevels={...S.hypothesisLevels,...next}; const note=$("#updateNote").value.trim(); const changes=r.hypotheses.filter(h=>next[h]&&next[h]!==prev[h]).map(h=>`${h}: ${probLabel(prev[h])} → ${probLabel(next[h])}`); const text=[changes.length?changes.join("; "):"No probability level changed.", note?`Reason noted: ${htmlSafe(note)}`:""].filter(Boolean).join(" "); S.reasoningUpdates.push({time:stamp(),levels:{...S.hypothesisLevels},note}); S.timeline.push({time:stamp(),type:"Reasoning update",title:"Diagnostic model updated",text,kind:"reasoning"}); save();closeSheet();render(); };
 }
 
-function openManageSheet(){
+function openFinalizeSheet(){
   const c=getCase(); if(!c)return;
-  showSheet("Management","What would you do at this point?",`<div class="choice-list">${PATHWAYS.map(p=>radioHTML("pathway",p.id,p.title,p.desc,S.pathwayChoice)).join('')}</div><div class="note" style="margin-top:12px">A management choice is provisional. You can close this panel, continue evaluating the patient, and revise it later.</div><div class="sheet-actions"><button class="secondary" id="continueEval">Continue evaluating</button><button class="primary" id="saveManage">Save management</button></div><button class="ghost" id="finishCase" style="width:100%;margin-top:9px">Finish case and debrief</button>`);
-  $("#continueEval").onclick=closeSheet; $("#saveManage").onclick=()=>{const p=getChecked("pathway");if(!p)return;S.pathwayChoice=p;const meta=PATHWAYS.find(x=>x.id===p);S.timeline.push({time:stamp(),type:"Management",title:"Management approach recorded",text:htmlSafe(meta.title),kind:"management"});save();closeSheet();render();}; $("#finishCase").onclick=finishCase;
+  showSheet("","Finalize assessment",`
+    <label class="field-label" for="finalDiagnosis">Working diagnosis</label>
+    <input class="text-input" id="finalDiagnosis" value="${htmlSafe(S.finalDiagnosis)}" placeholder="Your final working diagnosis">
+    <div class="sheet-section" style="margin-top:16px"><h3>Management</h3><div class="choice-list">${PATHWAYS.map(p=>radioHTML("pathway",p.id,p.title,p.desc,S.pathwayChoice)).join('')}</div></div>
+    <div class="sheet-section"><h3>Confidence</h3><div class="confidence-row">
+      ${["Low","Moderate","High"].map(x=>`<button type="button" class="confidence-choice ${S.finalConfidence===x?'selected':''}" data-confidence="${x}">${x}</button>`).join('')}
+    </div></div>
+    <div class="sheet-actions"><button class="secondary" id="returnCase">Return to case</button><button class="primary" id="finishCase">Finish case</button></div>`);
+  $("#returnCase").onclick=closeSheet;
+  $("#sheetBody").querySelectorAll("[data-confidence]").forEach(b=>b.onclick=()=>{$("#sheetBody").querySelectorAll("[data-confidence]").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");});
+  $("#finishCase").onclick=()=>{
+    const p=getChecked("pathway"); if(p)S.pathwayChoice=p;
+    S.finalDiagnosis=$("#finalDiagnosis").value.trim();
+    const conf=$("#sheetBody").querySelector(".confidence-choice.selected"); S.finalConfidence=conf?conf.dataset.confidence:"";
+    save(); finishCase();
+  };
 }
 function finishCase(){ stopTimer(); if(!S.pathwayChoice){const p=getChecked("pathway"); if(p)S.pathwayChoice=p;} const c=getCase(); if(c){S.history.push({caseId:c.id,completedAt:Date.now(),elapsedSec:Math.round(S.elapsed/1000)});} S.view="debrief"; save();closeSheet();render(); }
 
 function openFactsSheet(){
   const c=getCase(); if(!c)return;
   const rows=[...KUC_FIELDS.map(f=>{let state="Unknown"; if(!c.unknowns.includes(f.id))state="Known on arrival"; if(Object.keys(S.revealed).some(id=>(ACTION_UPDATES[id]||[]).includes(f.id)))state="Reviewed"; return `<div class="diff-row"><span>${f.label}</span><span>${state}</span></div>`;})];
-  showSheet("Case facts","What has been established?",`<div class="note">This is a compact reference, not a checklist. Unknown information can remain unknown if it does not change the current decision.</div><div class="diff-list" style="margin-top:14px">${rows.join('')}</div>`);
+  showSheet("","Case facts",`<div class="diff-list">${rows.join('')}</div>`);
 }
 
 function renderDebrief(app,c){
   if(!c){S.view="home";return render();}
   const r=reasoningFor(c); const chosenPath=PATHWAYS.find(x=>x.id===S.pathwayChoice), refPath=PATHWAYS.find(x=>x.id===c.pathway);
-  const trajectory=S.reasoningUpdates.map((u,i)=>`<li><b>Update ${i+1} (${u.time})</b>: ${r.hypotheses.filter(h=>u.levels[h]).map(h=>`${htmlSafe(h)} — ${probLabel(u.levels[h])}`).join('; ')}${u.note?`<br><span style="color:#667085">${htmlSafe(u.note)}</span>`:''}</li>`).join('');
-  app.innerHTML=`<section class="debrief"><div class="eyebrow">Case ${c.n}</div><h1>Debrief</h1><p class="lede">A reconstruction of the reasoning path, not a score.</p>
-    <div class="debrief-section"><h2>Reasoning frame</h2><div class="compare">
-      <div class="compare-box"><b>Your recorded interpretation</b>${htmlSafe(titleFor(TEMPOS,S.tempo))}<br>${htmlSafe(titleFor(LOCALIZATIONS,S.localization))}<br>${htmlSafe(titleFor(SYNDROMES,S.syndrome))}</div>
-      <div class="compare-box"><b>Reference framing for this case</b>${htmlSafe(titleFor(TEMPOS,r.tempo))}<br>${htmlSafe(titleFor(LOCALIZATIONS,r.localization))}<br>${htmlSafe(titleFor(SYNDROMES,c.syndrome))}</div>
+  const trajectory=S.reasoningUpdates.map((u,i)=>`<div class="trajectory-item"><span class="trajectory-time">${u.time}</span><div>${r.hypotheses.filter(h=>u.levels[h]).map(h=>`${htmlSafe(h)} — ${probLabel(u.levels[h])}`).join('<br>')}${u.note?`<div class="trajectory-note">${htmlSafe(u.note)}</div>`:''}</div></div>`).join('');
+  app.innerHTML=`<section class="debrief"><div class="case-kicker">Case ${c.n}</div><h1>Debrief</h1>
+    <div class="debrief-section"><h2>Clinical synthesis</h2><p>${c.syndromeStory}</p></div>
+    ${trajectory?`<div class="debrief-section"><h2>Reasoning trajectory</h2><div class="trajectory-list">${trajectory}</div></div>`:''}
+    <div class="debrief-section"><h2>Final assessment</h2><div class="final-summary">
+      <div><span>Diagnosis</span><b>${htmlSafe(S.finalDiagnosis||"Not recorded")}</b></div>
+      <div><span>Management</span><b>${htmlSafe(chosenPath?chosenPath.title:"Not recorded")}</b></div>
+      <div><span>Confidence</span><b>${htmlSafe(S.finalConfidence||"Not recorded")}</b></div>
     </div></div>
-    <div class="debrief-section"><h2>Management framing</h2><div class="compare"><div class="compare-box"><b>Your recorded approach</b>${htmlSafe(chosenPath?chosenPath.title:"Not recorded")}</div><div class="compare-box"><b>Reference approach in this case</b>${htmlSafe(refPath?refPath.title:"Not specified")}</div></div></div>
-    ${trajectory?`<div class="debrief-section"><h2>How your differential evolved</h2><ul class="plain-list">${trajectory}</ul></div>`:''}
-    <div class="debrief-section"><h2>Clinical synthesis</h2><p style="font-size:13.5px;line-height:1.55;margin:0">${c.syndromeStory}</p></div>
-    <div class="debrief-section"><h2>Reasoning points</h2><ul class="plain-list">${c.teach.map(t=>`<li>${t}</li>`).join('')}</ul></div>
-    <div class="debrief-section"><h2>Potential source of diagnostic error</h2><p style="font-size:13.5px;line-height:1.55;margin:0">${c.trap}</p></div>
-    <div class="debrief-section"><h2>Evidence to review</h2><p style="font-size:13px;line-height:1.5;margin:0">${(c.citations||[]).map(htmlSafe).join(' · ')||'No references listed for this case.'}</p></div>
-    <div class="debrief-actions"><button class="primary" id="another">Choose another case</button><button class="secondary" id="homeDebrief">Home</button></div></section>`;
+    <div class="debrief-section"><h2>Reasoning frame</h2>
+      <div class="reasoning-frame">
+        <div><span>Context</span><b>${htmlSafe(c.context||"")}</b></div>
+        <div><span>Pace</span><b>${htmlSafe(titleFor(TEMPOS,r.tempo))}</b></div>
+        <div><span>Localization</span><b>${htmlSafe(titleFor(LOCALIZATIONS,r.localization))}</b></div>
+        <div><span>Syndrome</span><b>${htmlSafe(titleFor(SYNDROMES,c.syndrome))}</b></div>
+      </div>
+    </div>
+    <div class="debrief-section"><h2>Key findings</h2><ul class="plain-list">${c.teach.map(t=>`<li>${t}</li>`).join('')}</ul></div>
+    <div class="debrief-section"><h2>Clinical reasoning point</h2><p>${c.trap}</p></div>
+    <div class="debrief-section"><h2>Evidence</h2><p>${(c.citations||[]).map(htmlSafe).join(' · ')||'No references listed.'}</p></div>
+    <div class="debrief-actions"><button class="primary" id="another">Another case</button><button class="secondary" id="homeDebrief">Home</button></div></section>`;
   $("#another").onclick=()=>{S.caseId=null;S.timeline=[];S.view="home";save();render();}; $("#homeDebrief").onclick=()=>{S.caseId=null;S.timeline=[];S.view="home";save();render();};
 }
 
